@@ -262,7 +262,7 @@
         <div class="footer-row">
             <span>© Digestiv</span>
             <span class="divider">|</span>
-            <span>Version 3.1</span>
+            <span>Version 1.10</span>
             <button class="reset-symbol" onclick="location.reload()" title="Reset Tool">↻</button>
         </div>
     </div>
@@ -301,7 +301,7 @@
         }
     }
 
-    // --- PDF Processing (Restored Adaptive Scaling) ---
+    // --- PDF Processing ---
     async function processPDF(file) {
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
@@ -335,7 +335,6 @@
 
         // 2. OCR Fallback Logic
         if (nativeText.length < 50) {
-            // Need OCR
             pageText = await runOCR(pdfCanvas); // Use last rendered canvas
         } else {
             pageText = nativeText;
@@ -360,7 +359,7 @@
                 const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
                 const code = jsQR(imageData.data, imageData.width, imageData.height);
                 
-                // Run OCR on Image
+                // Run OCR
                 const text = await runOCR(tempCanvas);
                 
                 finishProcessing(code, text);
@@ -377,17 +376,14 @@
         
         const image = canvasSource.toDataURL('image/png');
         
-        // Create worker with logger
         const worker = await Tesseract.createWorker({
             logger: m => {
                 if (m.status === 'recognizing text') {
                     document.getElementById('ocr-status').innerText = `Reading Text: ${Math.round(m.progress * 100)}%`;
                     document.getElementById('ocr-bar').style.width = `${m.progress * 100}%`;
                 } else {
-                    // Downloading status
                     document.getElementById('ocr-status').innerText = `${m.status}`;
                     if(m.status.includes("loading") || m.status.includes("downloading")) {
-                         // Estimate progress for downloading
                          document.getElementById('ocr-bar').style.width = "50%"; 
                     }
                 }
@@ -413,7 +409,7 @@
         }
     }
 
-    // --- Helpers ---
+    // --- Extraction & Validation Helpers ---
     function smartExtract(data, keys, regexPattern) {
         if (typeof data === 'object' && data !== null) {
             for (let k of Object.keys(data)) {
@@ -483,11 +479,14 @@
             if (lat && lng) qrLoc = `${lat}, ${lng}`;
         }
         if (!qrLoc) qrLoc = "Not Found";
-        const qrAltVal = parseFloat(smartExtract(data, ['altitude', 'alt'], /(?:Altitude|Alt)["\s:]+("?0"?)/i) || 0);
+        
+        // FIXED REGEX FOR ALTITUDE (Captures digits, not just 0)
+        const qrAltVal = parseFloat(smartExtract(data, ['altitude', 'alt'], /(?:Altitude|Alt)["\s:]+("?-?\d+(?:\.\d+)?"?)/i) || 0);
+        
         const qrRefID = smartExtract(data, ['reference', 'ref'], /(?:REFERENCE|REF)["\s:]+([A-Za-z0-9-]+)/i) || "Not Found";
         currentQRRef = qrRefID;
 
-        // 2. EXTRACT PDF TEXT (Fuzzy Regex)
+        // 2. EXTRACT PDF TEXT
         let pdfEmp = "Not Found";
         let pdfTime = "Not Found";
         let pdfLoc = "Not Found";
