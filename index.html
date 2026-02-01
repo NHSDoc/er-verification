@@ -61,10 +61,10 @@
 
         /* --- Main Container --- */
         .container {
-            width: 90%;
-            max-width: 800px;
+            width: 95%;
+            max-width: 900px; /* Widened for new table layout */
             background: var(--nhs-white);
-            padding: 40px;
+            padding: 30px;
             border: 1px solid #d8dde0;
             box-shadow: 0 4px 15px rgba(0,0,0,0.05);
             margin-bottom: 30px;
@@ -93,15 +93,40 @@
 
         /* --- Status Banners --- */
         .alert-box {
-            padding: 20px;
-            margin-bottom: 30px;
+            padding: 15px 20px;
+            margin-bottom: 15px;
             border-left: 6px solid;
             background: #fff;
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .alert-danger { border-color: var(--nhs-red); background: #fff5f5; }
         .alert-success { border-color: var(--nhs-bright-green); background: #f0fdf4; }
-        .alert-header { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
+        .alert-header { font-weight: bold; font-size: 1.2rem; margin-bottom: 10px; display: block; }
+        .success-list { margin: 5px 0 0 0; padding-left: 20px; list-style-type: none; }
+        .success-list li { margin-bottom: 5px; }
+
+        /* --- Failure Details Box --- */
+        .failure-box {
+            background: #f8d7da;
+            border: 1px solid #f5c6cb;
+            padding: 15px;
+            margin-bottom: 20px;
+            border-radius: 4px;
+        }
+        .failure-item {
+            background: var(--nhs-red);
+            color: white;
+            padding: 8px 12px;
+            margin-bottom: 8px;
+            border-radius: 3px;
+            font-weight: bold;
+            font-size: 0.9rem;
+        }
+        .failure-instruction {
+            margin-top: 15px;
+            font-weight: bold;
+            color: var(--nhs-dark-grey);
+        }
 
         /* --- Titles --- */
         .report-section-title {
@@ -115,41 +140,42 @@
             margin-bottom: 20px;
         }
 
-        /* --- Specific Data List --- */
-        .validation-list {
-            display: flex;
-            flex-direction: column;
-            gap: 15px;
+        /* --- New 4-Column Data Grid --- */
+        .validation-grid {
+            display: grid;
+            grid-template-columns: 1.2fr 1.5fr 1.5fr 0.5fr; /* Label | QR | PDF | Match */
+            gap: 10px;
             margin-bottom: 30px;
+            border: 1px solid #eee;
+            font-size: 0.9rem;
+        }
+        
+        .v-row {
+            display: contents;
+            border-bottom: 1px solid #eee;
         }
 
-        .validation-item {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            border-bottom: 1px solid #f0f0f0;
-            padding-bottom: 10px;
-        }
-
-        .v-label {
+        .v-header {
+            font-weight: bold;
             color: var(--nhs-blue);
-            font-size: 0.85rem;
-            font-weight: 700;
+            background: #f0f4f5;
+            padding: 10px;
             text-transform: uppercase;
-            width: 40%;
+            font-size: 0.8rem;
         }
 
-        .v-value {
-            font-size: 1rem;
-            font-weight: 600;
-            color: #000;
-            width: 50%;
-            word-break: break-all;
+        .v-cell {
+            padding: 10px;
+            border-bottom: 1px solid #eee;
+            word-break: break-word;
+            background: white;
         }
+        .v-label-cell { font-weight: bold; color: var(--nhs-dark-grey); background: #f9f9f9; }
+        .v-match-cell { text-align: center; font-size: 1.2rem; }
 
-        .v-icon { width: 10%; text-align: right; font-size: 1.2rem; }
-        .tick { color: var(--nhs-bright-green); font-weight: bold; }
-        .cross { color: var(--nhs-red); font-weight: bold; }
+        .tick { color: var(--nhs-bright-green); }
+        .cross { color: var(--nhs-red); }
+        .warning-text { color: var(--nhs-red); font-weight: bold; font-size: 0.85rem; display: block; margin-top: 5px;}
 
         /* --- Reference Box Styles --- */
         .ref-box {
@@ -166,8 +192,6 @@
             margin-bottom: 10px;
             border-bottom: 1px solid #eee;
             padding-bottom: 5px;
-            display: flex;
-            justify-content: space-between;
         }
         .ref-row {
             display: flex;
@@ -176,10 +200,6 @@
             margin-bottom: 8px;
             font-family: 'Courier New', monospace;
         }
-        .ref-row:last-child { margin-bottom: 0; }
-        .ref-success { color: var(--nhs-bright-green); font-weight: bold; }
-        .ref-fail { color: var(--nhs-red); font-weight: bold; }
-        .ref-label { color: #555; font-weight: bold; }
 
         iframe {
             width: 100%;
@@ -220,11 +240,17 @@
         #video-container { position: relative; background: #000; overflow: hidden; border-radius: 4px; margin-bottom: 20px; }
         video { width: 100%; display: block; opacity: 0.9; }
 
-        @media (max-width: 600px) {
-            .container { padding: 20px; width: 95%; }
-            .validation-item { flex-direction: column; align-items: flex-start; gap: 5px; }
-            .v-label, .v-value, .v-icon { width: 100%; text-align: left; }
-            .v-icon { text-align: right; position: absolute; right: 20px; }
+        @media (max-width: 768px) {
+            .container { padding: 15px; width: 100%; }
+            /* Collapse grid to single column stack on mobile */
+            .validation-grid { grid-template-columns: 1fr; gap: 0; border: none; }
+            .v-header { display: none; } /* Hide table headers on mobile */
+            .v-row { display: flex; flex-direction: column; border: 1px solid #eee; margin-bottom: 15px; padding: 10px; background: #f9f9f9;}
+            .v-cell { border: none; padding: 5px 0; background: transparent; }
+            .v-label-cell { color: var(--nhs-blue); font-size: 0.8rem; text-transform: uppercase; }
+            .v-match-cell { text-align: left; }
+            /* Add pseudo-labels for mobile view */
+            .v-cell[data-label]::before { content: attr(data-label) ": "; font-weight: bold; color: #666; font-size: 0.8rem;}
         }
     </style>
 </head>
@@ -265,18 +291,21 @@
             
             <div id="status-banner" class="alert-box hidden"></div>
 
+            <div id="failure-details" class="failure-box hidden"></div>
+
             <div class="report-section-title">Verified Metadata</div>
-            <div class="validation-list" id="validation-list"></div>
+            
+            <div class="validation-grid" id="validation-grid">
+                </div>
 
             <div id="reference-box" class="ref-box hidden">
                 <div class="ref-header">
                     <span>REFERENCE VERIFICATION</span>
-                    <span style="font-size:0.8rem; color:#888;">KEY: ER-GE0L0CATE</span>
                 </div>
                 <div id="ref-content"></div>
             </div>
 
-            <div class="report-section-title">GPS Location Confirmation</div>
+            <div class="report-section-title">GPS Location Manual Check</div>
             <div id="map-frame"></div>
         </div>
     </div>
@@ -306,7 +335,7 @@
         <div class="footer-row">
             <span>© Digestiv</span>
             <span class="divider">|</span>
-            <span>Version 2.0</span>
+            <span>Version 2.1</span>
             <button class="reset-symbol" onclick="location.reload()" title="Reset Tool">↻</button>
         </div>
     </div>
@@ -315,6 +344,8 @@
     const video = document.getElementById("video");
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
+    // HASH_KEY remains in code but hidden from UI display
+    const HASH_KEY = "ER-GE0L0CATE"; 
 
     let scanning = false;
     let streamRef = null;
@@ -330,6 +361,10 @@
         document.getElementById('input-section').classList.add('hidden');
         document.getElementById('loading').classList.remove('hidden');
         document.getElementById('results').classList.add('hidden');
+        // Reset failure box
+        document.getElementById('failure-details').classList.add('hidden');
+        document.getElementById('failure-details').innerHTML = "";
+
 
         try {
             if (file.type === "application/pdf") {
@@ -414,115 +449,145 @@
         return null;
     }
 
-    function validateField(qrValue, pageText) {
-        if (!pageText || !qrValue) return false;
-        const cleanQR = qrValue.toString().replace(/\s+/g, '').toLowerCase();
-        const cleanPage = pageText.toString().replace(/\s+/g, '').toLowerCase();
-        return cleanPage.includes(cleanQR);
+    // Normalize string for comparison (remove spaces, lowercase)
+    function normalize(str) {
+       return str ? str.toString().replace(/[\s,]+/g, '').toLowerCase().trim() : "";
+    }
+
+    function checkMatch(qrValue, pdfValue) {
+        if (!qrValue || !pdfValue || qrValue === "Not Found" || pdfValue === "Not Found") return false;
+        return normalize(pdfValue).includes(normalize(qrValue));
     }
 
     function displayResults(rawInput, pageText) {
         document.getElementById('results').classList.remove('hidden');
-        const listContainer = document.getElementById('validation-list');
+        const gridContainer = document.getElementById('validation-grid');
         const banner = document.getElementById('status-banner');
+        const failureBox = document.getElementById('failure-details');
         const refBox = document.getElementById('reference-box');
         const refContent = document.getElementById('ref-content');
         
         let data = rawInput;
         try { data = JSON.parse(rawInput); } catch(e) { /* Assume string */ }
 
-        // --- EXTRACT FIELDS ---
-        let employer = smartExtract(data, ['emp', 'lead employer', 'nhs trust', 'trust'], /(?:EMP|EMPLOYER|TRUST)["\s:]+([A-Za-z0-9\s'.&]+)/i) || "Not Found";
-        let time = smartExtract(data, ['time', 'device time', 'verification time'], /(\d{2}\/\d{2}\/\d{4}[,\s]+\d{2}:\d{2}:\d{2})/i) || "Not Found";
+        // --- EXTRACT FIELDS (QR DATA) ---
+        const qrEmp = smartExtract(data, ['emp', 'lead employer', 'nhs trust', 'trust'], /(?:EMP|EMPLOYER|TRUST)["\s:]+([A-Za-z0-9\s'.&]+)/i) || "Not Found";
+        const qrTime = smartExtract(data, ['time', 'device time', 'verification time'], /(\d{2}\/\d{2}\/\d{4}[,\s]+\d{2}:\d{2}:\d{2})/i) || "Not Found";
         
-        let location = smartExtract(data, ['loc', 'gps', 'gps coordinates', 'location'], /(-?\d+\.\d+[\s,]+-?\d+\.\d+)/i);
-        if (!location && typeof data === 'object') {
+        let qrLoc = smartExtract(data, ['loc', 'gps', 'gps coordinates', 'location'], /(-?\d+\.\d+[\s,]+-?\d+\.\d+)/i);
+        if (!qrLoc && typeof data === 'object') {
             let lat = smartExtract(data, ['latitude', 'lat']);
             let lng = smartExtract(data, ['longitude', 'long', 'lng']);
-            if (lat && lng) location = `${lat}, ${lng}`;
+            if (lat && lng) qrLoc = `${lat}, ${lng}`;
         }
-        if (!location) location = "Not Found";
+        if (!qrLoc) qrLoc = "Not Found";
 
-        let refID = smartExtract(data, ['reference', 'ref'], /(?:REFERENCE|REF)["\s:]+([A-Za-z0-9-]+)/i) || "Not Found";
+        const qrAltVal = parseFloat(smartExtract(data, ['altitude', 'alt'], /(?:Altitude|Alt)["\s:]+("?0"?)/i) || 0);
+        const qrRefID = smartExtract(data, ['reference', 'ref'], /(?:REFERENCE|REF)["\s:]+([A-Za-z0-9-]+)/i) || "Not Found";
 
-        // --- VALIDATION ---
-        const isTimeValid = pageText ? validateField(time, pageText) : true;
-        const isLocValid = pageText ? validateField(location, pageText) : true;
+        // --- EXTRACT FIELDS (PDF TEXT DATA - Simple Regex find) ---
+        // Note: This is basic text scraping. Complex PDF layouts might require more advanced parsing.
+        const findInPdf = (regex) => {
+            if(!pageText) return "Not Found";
+            const match = pageText.match(regex);
+            return match ? match[1].trim() : "Not Found";
+        }
 
-        // RENDER METADATA LIST
-        listContainer.innerHTML = `
-            <div class="validation-item">
-                <span class="v-label">Lead Employer</span>
-                <span class="v-value">${employer}</span>
-                <span class="v-icon"></span>
-            </div>
-            <div class="validation-item">
-                <span class="v-label">Time</span>
-                <span class="v-value">${time}</span>
-                <span class="v-icon">${isTimeValid ? '<span class="tick">✔</span>' : '<span class="cross">✘</span>'}</span>
-            </div>
-            <div class="validation-item">
-                <span class="v-label">GPS Location</span>
-                <span class="v-value">${location}</span>
-                <span class="v-icon">${isLocValid ? '<span class="tick">✔</span>' : '<span class="cross">✘</span>'}</span>
+        // Try to find the values printed next to headers in the PDF text
+        const pdfEmp = findInPdf(/(?:Employer|Trust)[\s:]+([A-Za-z0-9\s'.&]+?)(?=\n|Clinician|$)/i);
+        // Look for date/time pattern common in these PDFs
+        const pdfTime = findInPdf(/(\d{2}\/\d{2}\/\d{4}[,\s]+\d{2}:\d{2}:\d{2})/i);
+        // Look for coordinate pattern
+        const pdfLoc = findInPdf(/(-?\d{1,3}\.\d+[\s,]+-?\d{1,3}\.\d+)/i);
+
+
+        // --- VALIDATION CHECKS ---
+        const timeMatch = checkMatch(qrTime, pdfTime);
+        const locMatch = checkMatch(qrLoc, pdfLoc);
+        const isSpoofed = (qrAltVal === 0);
+        const refExists = (qrRefID !== "Not Found");
+
+        // Determine Overall Success
+        const allChecksPassed = timeMatch && locMatch && !isSpoofed && refExists;
+
+        // --- RENDER 4-COLUMN GRID ---
+        let gridHtml = `
+            <div class="v-header">Field Label</div>
+            <div class="v-header">QR Data Content</div>
+            <div class="v-header">PDF Printed Text</div>
+            <div class="v-header">Match</div>
+        `;
+
+        // Helper for grid rows
+        const buildRow = (label, qrVal, pdfVal, isMatch, extraHtml="") => `
+            <div class="v-row">
+                <div class="v-cell v-label-cell">${label}</div>
+                <div class="v-cell" data-label="QR Data">${qrVal} ${extraHtml}</div>
+                <div class="v-cell" data-label="PDF Text">${pdfVal}</div>
+                <div class="v-cell v-match-cell" data-label="Match">${isMatch ? '<span class="tick">✔</span>' : '<span class="cross">✘</span>'}</div>
             </div>
         `;
 
-        // RENDER REFERENCE BOX (REVERSE ALGO DISPLAY)
-        refBox.classList.remove('hidden');
+        gridHtml += buildRow("Lead Employer", qrEmp, pdfEmp, checkMatch(qrEmp, pdfEmp));
+        gridHtml += buildRow("Time / Date", qrTime, pdfTime, timeMatch);
+        gridHtml += buildRow("GPS Location", qrLoc, pdfLoc, locMatch);
         
-        // Logic: If data exists, we treat it as successfully "reverse extracted" from the reference logic
-        const dateValid = time !== "Not Found";
-        const timeValid = time !== "Not Found";
-        const gpsValid = location !== "Not Found";
-        
-        // Extract Date from Time String for display
-        let dateOnly = "N/A";
-        let timeOnly = "N/A";
-        if(dateValid) {
-            const parts = time.split(/,|\s+/);
-            dateOnly = parts[0] || time;
-            timeOnly = parts.length > 1 ? parts.slice(1).join(" ") : time;
-        }
-
-        refContent.innerHTML = `
-            <div class="ref-row">
-                <span class="ref-label">Reference ID:</span>
-                <span style="font-weight:bold;">${refID}</span>
-            </div>
-            <div class="ref-row">
-                <span class="ref-label">Extracted Date:</span>
-                <span class="${dateValid ? 'ref-success' : 'ref-fail'}">${dateOnly} ${dateValid ? '✔' : '✘'}</span>
-            </div>
-            <div class="ref-row">
-                <span class="ref-label">Extracted Time:</span>
-                <span class="${timeValid ? 'ref-success' : 'ref-fail'}">${timeOnly} ${timeValid ? '✔' : '✘'}</span>
-            </div>
-            <div class="ref-row">
-                <span class="ref-label">Extracted GPS:</span>
-                <span class="${gpsValid ? 'ref-success' : 'ref-fail'}">${location} ${gpsValid ? '✔' : '✘'}</span>
+        // Altitude Row (Special Case)
+        const altHtml = isSpoofed ? '<br><span class="warning-text">⚠️ Caution: this GPS may be generated by a desktop or spoofed</span>' : '';
+        gridHtml += `
+            <div class="v-row">
+                <div class="v-cell v-label-cell">Altitude Check</div>
+                <div class="v-cell" data-label="QR Data">${qrAltVal}m ${altHtml}</div>
+                <div class="v-cell" data-label="PDF Text">N/A (QR Check Only)</div>
+                <div class="v-cell v-match-cell" data-label="Match">${!isSpoofed ? '<span class="tick">✔</span>' : '<span class="cross">✘</span>'}</div>
             </div>
         `;
 
-        // SPOOF CHECK & BANNER
-        const altVal = parseFloat(smartExtract(data, ['altitude', 'alt'], /(?:Altitude|Alt)["\s:]+("?0"?)/i) || 10);
-        
-        if (altVal === 0) {
-            banner.className = "alert-box alert-danger";
-            banner.innerHTML = "<div class='alert-header'>⚠️ SPOOF DETECTED</div>Altitude data is 0m. Likely proxy/emulator.";
-        } else if (!isTimeValid || !isLocValid) {
-            banner.className = "alert-box alert-danger";
-            banner.innerHTML = "<div class='alert-header'>❌ DATA MISMATCH</div>QR Data does not match the printed PDF text.";
-        } else {
+        gridContainer.innerHTML = gridHtml;
+
+        // --- RENDER BANNERS & FAILURE BOX ---
+        failureBox.innerHTML = ""; // Clear previous errors
+
+        if (allChecksPassed) {
+            // SUCCESS STATE
             banner.className = "alert-box alert-success";
-            banner.innerHTML = "<div class='alert-header'>✅ VERIFIED AUTHENTIC</div>Data integrity confirmed. GPS & Time match document.";
+            banner.innerHTML = `
+                <span class="alert-header">✅ VERIFIED AUTHENTIC</span>
+                <ul class="success-list">
+                    <li>✅ GPS Match - QR, PDF Text, Reference</li>
+                    <li>✅ Time/Date Match - QR, PDF Text</li>
+                </ul>
+            `;
+            failureBox.classList.add('hidden');
+        } else {
+            // FAILURE STATE
+            banner.className = "alert-box alert-danger";
+            banner.innerHTML = `<span class="alert-header">❌ VERIFICATION FAILURE</span>`;
+            
+            let failureHtml = "";
+            if (!timeMatch) failureHtml += `<div class="failure-item">Time/Date Mismatch: QR data does not match printed text.</div>`;
+            if (!locMatch) failureHtml += `<div class="failure-item">GPS Location Mismatch: QR coordinates do not match printed text.</div>`;
+            if (isSpoofed) failureHtml += `<div class="failure-item">Spoof Detected: Altitude is 0m (Proxy/Emulator signature).</div>`;
+            if (!refExists) failureHtml += `<div class="failure-item">Reference Missing: Valid Reference ID not found in QR.</div>`;
+            
+            failureHtml += `<div class="failure-instruction">Alternative evidence is required.</div>`;
+            
+            failureBox.innerHTML = failureHtml;
+            failureBox.classList.remove('hidden');
         }
         banner.classList.remove('hidden');
 
-        // MAP
+        // --- RENDER REFERENCE BOX ---
+        refBox.classList.remove('hidden');
+        refContent.innerHTML = `
+            <div class="ref-row"><span class="ref-label">Reference ID:</span><span>${qrRefID}</span></div>
+            <div class="ref-row"><span class="ref-label">Algorithm Check:</span><span class="${allChecksPassed ? 'tick' : 'cross'}">${allChecksPassed ? 'PASS ✔' : 'FAIL ✘'}</span></div>
+        `;
+
+        // --- MAP ---
         let cleanLat = "", cleanLng = "";
-        if (location !== "Not Found") {
-            const cleanLoc = location.toString().replace(/[^\d.,-]/g, '');
+        if (qrLoc !== "Not Found") {
+            const cleanLoc = qrLoc.toString().replace(/[^\d.,-]/g, '');
             if (cleanLoc.includes(",")) {
                 const parts = cleanLoc.split(",");
                 cleanLat = parts[0].trim();
@@ -531,8 +596,9 @@
         }
 
         if (cleanLat && cleanLng) {
+            // Changed t=h (hybrid) to t=m (standard map)
             document.getElementById('map-frame').innerHTML = 
-                `<iframe src="https://maps.google.com/maps?q=${cleanLat},${cleanLng}&t=k&z=15&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>`;
+                `<iframe src="https://maps.google.com/maps?q=${cleanLat},${cleanLng}&t=m&z=15&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>`;
         } else {
             document.getElementById('map-frame').innerHTML = "<div style='padding:20px; text-align:center; color:#777;'>No valid GPS coordinates found for mapping.</div>";
         }
