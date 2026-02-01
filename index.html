@@ -72,6 +72,15 @@
 
         #file-input, .hidden { display: none !important; }
 
+        /* Progress Bar for OCR */
+        .progress-container {
+            width: 100%; background-color: #e0e0e0; border-radius: 4px; margin-top: 10px; height: 10px; overflow: hidden;
+        }
+        .progress-bar {
+            height: 100%; background-color: var(--nhs-blue); width: 0%; transition: width 0.3s ease;
+        }
+        .progress-text { font-size: 0.85rem; color: #555; margin-top: 5px; font-style: italic; }
+
         /* Banners */
         .alert-box {
             padding: 15px 20px; margin-bottom: 15px; border-left: 6px solid;
@@ -140,13 +149,6 @@
 
         iframe { width: 100%; height: 400px; border: 1px solid #ddd; border-radius: 4px; }
 
-        /* Loader */
-        .loader-spinner {
-            border: 4px solid #f3f3f3; border-top: 4px solid var(--nhs-blue); border-radius: 50%;
-            width: 30px; height: 30px; animation: spin 1s linear infinite; margin: 0 auto 10px auto;
-        }
-        @keyframes spin { 0% { transform: rotate(0deg); } 100% { transform: rotate(360deg); } }
-
         /* Footer */
         .footer {
             width: 100%; text-align: center; padding: 20px 0; color: #999; font-size: 0.9rem; margin-top: auto; border-top: 1px solid #e0e0e0;
@@ -157,6 +159,7 @@
         .divider { color: #ccc; }
         .reset-symbol { color: var(--nhs-blue); cursor: pointer; font-weight: bold; font-size: 1.1rem; border: none; background: none; padding: 0; margin-left: 5px; }
 
+        /* Modal */
         #install-modal {
             position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 999;
         }
@@ -198,9 +201,15 @@
         </div>
 
         <div id="loading" class="hidden" style="text-align:center; padding:40px;">
-            <div class="loader-spinner"></div>
             <div style="font-weight:bold; color:var(--nhs-blue); font-size:1.1rem; margin-bottom:10px;">ANALYZING EVIDENCE...</div>
-            <div id="loading-text" style="color:#777; font-size:0.9rem;">Initializing OCR Engine...</div>
+            <div id="loading-text" style="color:#777; font-size:0.9rem;">Initializing System...</div>
+            
+            <div id="ocr-progress-box" class="hidden" style="max-width:300px; margin: 15px auto;">
+                <div class="progress-container">
+                    <div id="ocr-bar" class="progress-bar"></div>
+                </div>
+                <div id="ocr-status" class="progress-text">Loading Core...</div>
+            </div>
         </div>
 
         <div id="video-container" class="hidden">
@@ -249,12 +258,11 @@
         <div class="footer-row">
             <span class="footer-link" onclick="toggleModal()">📱 Install App on Phone</span>
             <span class="divider">|</span>
-            <span>© Digestiv</span>
-        </div>
+            </div>
         <div class="footer-row">
             <span>© Digestiv</span>
             <span class="divider">|</span>
-            <span>Version 3.0 (OCR Enabled)</span>
+            <span>Version 3.1</span>
             <button class="reset-symbol" onclick="location.reload()" title="Reset Tool">↻</button>
         </div>
     </div>
@@ -293,33 +301,42 @@
         }
     }
 
-    // --- PDF Processing ---
+    // --- PDF Processing (Restored Adaptive Scaling) ---
     async function processPDF(file) {
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
         const page = await pdf.getPage(1);
         
-        // 1. Try Native Text Layer first (Fastest)
         let pageText = "";
         const textContent = await page.getTextContent();
         const nativeText = textContent.items.map(item => item.str).join(" ");
         
-        // 2. Render Page to Canvas for QR Scanning
-        const viewport = page.getViewport({ scale: 2.0 });
-        const pdfCanvas = document.createElement('canvas');
-        const pdfCtx = pdfCanvas.getContext('2d');
-        pdfCanvas.height = viewport.height;
-        pdfCanvas.width = viewport.width;
-        await page.render({ canvasContext: pdfCtx, viewport: viewport }).promise;
+        // 1. Adaptive QR Scan (3.0 -> 2.0 -> 1.5 -> 1.0)
+        let code = null;
+        let pdfCanvas = null;
+        let pdfCtx = null;
+        const scales = [3.0, 2.0, 1.5, 1.0]; 
         
-        // 3. Scan QR
-        const imageData = pdfCtx.getImageData(0, 0, pdfCanvas.width, pdfCanvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        document.getElementById('loading-text').innerText = "Scanning for QR Code...";
 
-        // 4. OCR Logic (If native text is empty/too short, run OCR)
+        for (let scale of scales) {
+            const viewport = page.getViewport({ scale: scale });
+            pdfCanvas = document.createElement('canvas');
+            pdfCtx = pdfCanvas.getContext('2d');
+            pdfCanvas.height = viewport.height;
+            pdfCanvas.width = viewport.width;
+
+            await page.render({ canvasContext: pdfCtx, viewport: viewport }).promise;
+
+            const imageData = pdfCtx.getImageData(0, 0, pdfCanvas.width, pdfCanvas.height);
+            code = jsQR(imageData.data, imageData.width, imageData.height);
+            if (code) break;
+        }
+
+        // 2. OCR Fallback Logic
         if (nativeText.length < 50) {
-            document.getElementById('loading-text').innerText = "Running OCR on PDF Scan...";
-            pageText = await runOCR(pdfCanvas);
+            // Need OCR
+            pageText = await runOCR(pdfCanvas); // Use last rendered canvas
         } else {
             pageText = nativeText;
         }
@@ -344,7 +361,6 @@
                 const code = jsQR(imageData.data, imageData.width, imageData.height);
                 
                 // Run OCR on Image
-                document.getElementById('loading-text').innerText = "Running OCR on Image...";
                 const text = await runOCR(tempCanvas);
                 
                 finishProcessing(code, text);
@@ -354,15 +370,36 @@
         reader.readAsDataURL(file);
     }
 
-    // --- TESSERACT OCR ---
+    // --- TESSERACT OCR with Progress Bar ---
     async function runOCR(canvasSource) {
-        // Convert canvas to image URL
+        document.getElementById('ocr-progress-box').classList.remove('hidden');
+        document.getElementById('loading-text').innerText = "Installing OCR Engine (First Run Only)...";
+        
         const image = canvasSource.toDataURL('image/png');
-        const worker = await Tesseract.createWorker();
+        
+        // Create worker with logger
+        const worker = await Tesseract.createWorker({
+            logger: m => {
+                if (m.status === 'recognizing text') {
+                    document.getElementById('ocr-status').innerText = `Reading Text: ${Math.round(m.progress * 100)}%`;
+                    document.getElementById('ocr-bar').style.width = `${m.progress * 100}%`;
+                } else {
+                    // Downloading status
+                    document.getElementById('ocr-status').innerText = `${m.status}`;
+                    if(m.status.includes("loading") || m.status.includes("downloading")) {
+                         // Estimate progress for downloading
+                         document.getElementById('ocr-bar').style.width = "50%"; 
+                    }
+                }
+            }
+        });
+
         await worker.loadLanguage('eng');
         await worker.initialize('eng');
         const { data: { text } } = await worker.recognize(image);
         await worker.terminate();
+        
+        document.getElementById('ocr-progress-box').classList.add('hidden');
         return text;
     }
 
@@ -376,7 +413,7 @@
         }
     }
 
-    // --- Extraction & Validation Helpers ---
+    // --- Helpers ---
     function smartExtract(data, keys, regexPattern) {
         if (typeof data === 'object' && data !== null) {
             for (let k of Object.keys(data)) {
@@ -397,7 +434,6 @@
 
     function checkMatch(qrValue, pdfValue) {
         if (!qrValue || !pdfValue || qrValue === "Not Found" || pdfValue === "Not Found") return false;
-        // Simple containment check is usually enough for OCR text which might be messy
         return normalize(pdfValue).includes(normalize(qrValue));
     }
 
@@ -451,7 +487,7 @@
         const qrRefID = smartExtract(data, ['reference', 'ref'], /(?:REFERENCE|REF)["\s:]+([A-Za-z0-9-]+)/i) || "Not Found";
         currentQRRef = qrRefID;
 
-        // 2. EXTRACT PDF TEXT (Using Fuzzy Regex)
+        // 2. EXTRACT PDF TEXT (Fuzzy Regex)
         let pdfEmp = "Not Found";
         let pdfTime = "Not Found";
         let pdfLoc = "Not Found";
@@ -474,7 +510,7 @@
         const refExists = (qrRefID !== "Not Found");
         const refAlgoPassed = refExists && qrTime !== "Not Found" && qrLoc !== "Not Found";
 
-        // 4. RENDER GRID
+        // 4. GRID
         let gridHtml = `
             <div class="v-header">Field Label</div>
             <div class="v-header">QR Data Content</div>
@@ -518,7 +554,6 @@
             failureBox.classList.add('hidden');
             document.getElementById('manual-check-section').classList.add('hidden');
         } else {
-            // Failure or Partial
             banner.className = "alert-box alert-danger";
             banner.innerHTML = `<span class="alert-header">❌ VERIFICATION FAILURE</span>`;
             
@@ -527,11 +562,10 @@
             if (!locMatch) failureHtml += `<div class="failure-item">GPS Location Mismatch</div>`;
             if (isSpoofed) failureHtml += `<div class="failure-item">Spoof Detected (Altitude 0)</div>`;
             
-            // If OCR failed completely (everything is Not Found), suggest Manual
             if (pdfTime === "Not Found" && pdfLoc === "Not Found") {
-                failureHtml += `<div class="failure-item">OCR could not read text clearly. Use manual check below.</div>`;
+                failureHtml += `<div class="failure-item">Text not readable (OCR Failed). Use manual check below.</div>`;
                 document.getElementById('manual-check-section').classList.remove('hidden');
-                banner.className = "alert-box alert-warning"; // Downgrade to warning if it's just OCR failure
+                banner.className = "alert-box alert-warning"; 
                 banner.innerHTML = `<span class="alert-header">⚠️ MANUAL CHECK REQUIRED</span> Text not readable. Please verify Reference ID manually.`;
             } else {
                 document.getElementById('manual-check-section').classList.add('hidden');
@@ -601,7 +635,7 @@
                 scanning = false;
                 streamRef.getTracks().forEach(track => track.stop());
                 document.getElementById('video-container').classList.add('hidden');
-                // Pass canvas to OCR as if it were a file
+                
                 document.getElementById('loading').classList.remove('hidden');
                 document.getElementById('loading-text').innerText = "Processing Camera Frame...";
                 
