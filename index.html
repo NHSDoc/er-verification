@@ -21,7 +21,7 @@
             --nhs-light-grey: #f0f4f5;
             --nhs-bright-green: #007f3b;
             --nhs-red: #da291c;
-            --text-grey: #888888;
+            --nhs-yellow: #ffb81c;
         }
 
         body {
@@ -62,7 +62,7 @@
         /* --- Main Container --- */
         .container {
             width: 95%;
-            max-width: 900px; /* Widened for new table layout */
+            max-width: 900px;
             background: var(--nhs-white);
             padding: 30px;
             border: 1px solid #d8dde0;
@@ -101,155 +101,97 @@
         }
         .alert-danger { border-color: var(--nhs-red); background: #fff5f5; }
         .alert-success { border-color: var(--nhs-bright-green); background: #f0fdf4; }
+        .alert-warning { border-color: var(--nhs-yellow); background: #fffdf0; }
         .alert-header { font-weight: bold; font-size: 1.2rem; margin-bottom: 10px; display: block; }
+        
         .success-list { margin: 5px 0 0 0; padding-left: 20px; list-style-type: none; }
         .success-list li { margin-bottom: 5px; }
 
-        /* --- Failure Details Box --- */
         .failure-box {
-            background: #f8d7da;
-            border: 1px solid #f5c6cb;
-            padding: 15px;
-            margin-bottom: 20px;
-            border-radius: 4px;
+            background: #f8d7da; border: 1px solid #f5c6cb; padding: 15px; margin-bottom: 20px; border-radius: 4px;
         }
         .failure-item {
-            background: var(--nhs-red);
-            color: white;
-            padding: 8px 12px;
-            margin-bottom: 8px;
-            border-radius: 3px;
-            font-weight: bold;
-            font-size: 0.9rem;
+            background: var(--nhs-red); color: white; padding: 8px 12px; margin-bottom: 8px; border-radius: 3px; font-weight: bold; font-size: 0.9rem;
         }
-        .failure-instruction {
-            margin-top: 15px;
-            font-weight: bold;
-            color: var(--nhs-dark-grey);
-        }
+        .failure-instruction { margin-top: 15px; font-weight: bold; color: var(--nhs-dark-grey); }
 
-        /* --- Titles --- */
         .report-section-title {
-            color: var(--nhs-blue);
-            font-size: 1.1rem;
-            font-weight: bold;
-            text-transform: uppercase;
-            border-bottom: 2px solid #eee;
-            padding-bottom: 10px;
-            margin-top: 30px;
-            margin-bottom: 20px;
+            color: var(--nhs-blue); font-size: 1.1rem; font-weight: bold; text-transform: uppercase;
+            border-bottom: 2px solid #eee; padding-bottom: 10px; margin-top: 30px; margin-bottom: 20px;
         }
 
-        /* --- New 4-Column Data Grid --- */
+        /* --- Grid --- */
         .validation-grid {
-            display: grid;
-            grid-template-columns: 1.2fr 1.5fr 1.5fr 0.5fr; /* Label | QR | PDF | Match */
-            gap: 10px;
-            margin-bottom: 30px;
-            border: 1px solid #eee;
-            font-size: 0.9rem;
+            display: grid; grid-template-columns: 1.2fr 1.5fr 1.5fr 0.5fr; gap: 10px; margin-bottom: 30px; border: 1px solid #eee; font-size: 0.9rem;
         }
-        
-        .v-row {
-            display: contents;
-            border-bottom: 1px solid #eee;
-        }
-
+        .v-row { display: contents; border-bottom: 1px solid #eee; }
         .v-header {
-            font-weight: bold;
-            color: var(--nhs-blue);
-            background: #f0f4f5;
-            padding: 10px;
-            text-transform: uppercase;
-            font-size: 0.8rem;
+            font-weight: bold; color: var(--nhs-blue); background: #f0f4f5; padding: 10px; text-transform: uppercase; font-size: 0.8rem;
         }
-
-        .v-cell {
-            padding: 10px;
-            border-bottom: 1px solid #eee;
-            word-break: break-word;
-            background: white;
-        }
+        .v-cell { padding: 10px; border-bottom: 1px solid #eee; word-break: break-word; background: white; }
         .v-label-cell { font-weight: bold; color: var(--nhs-dark-grey); background: #f9f9f9; }
         .v-match-cell { text-align: center; font-size: 1.2rem; }
-
+        
         .tick { color: var(--nhs-bright-green); }
         .cross { color: var(--nhs-red); }
+        .info-text { color: #666; font-size: 0.8rem; font-style: italic; }
         .warning-text { color: var(--nhs-red); font-weight: bold; font-size: 0.85rem; display: block; margin-top: 5px;}
 
-        /* --- Reference Box Styles --- */
+        /* --- Reference Box --- */
         .ref-box {
-            background: #f8f9fa;
-            border: 1px solid #d8dde0;
-            border-left: 4px solid var(--nhs-blue);
-            padding: 15px;
-            margin-bottom: 30px;
+            background: #f8f9fa; border: 1px solid #d8dde0; border-left: 4px solid var(--nhs-blue); padding: 20px; margin-bottom: 30px;
         }
         .ref-header {
-            font-weight: bold;
-            color: var(--nhs-dark-grey);
-            font-size: 0.9rem;
-            margin-bottom: 10px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 5px;
+            font-weight: bold; color: var(--nhs-dark-grey); font-size: 0.9rem; margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 5px;
         }
         .ref-row {
-            display: flex;
-            justify-content: space-between;
-            font-size: 0.95rem;
-            margin-bottom: 8px;
-            font-family: 'Courier New', monospace;
+            display: flex; justify-content: space-between; align-items: center; font-size: 0.95rem; margin-bottom: 10px; font-family: 'Arial', sans-serif;
         }
+        .ref-success { color: var(--nhs-bright-green); font-weight: bold; }
+        .ref-fail { color: var(--nhs-red); font-weight: bold; }
+        .ref-label { color: #555; font-weight: bold; }
 
-        iframe {
-            width: 100%;
-            height: 400px;
-            border: 1px solid #ddd;
-            border-radius: 4px;
+        /* Manual Input */
+        .manual-input-group {
+            background: white; padding: 15px; border: 1px solid #ccc; border-radius: 4px; margin-top: 10px; display: flex; flex-direction: column; gap: 8px;
         }
+        .manual-label { font-size: 0.85rem; font-weight: bold; color: var(--nhs-blue); text-transform: uppercase; }
+        .ref-input {
+            padding: 10px; font-size: 1rem; border: 2px solid #ccc; border-radius: 4px; font-family: "Courier New", monospace; text-transform: uppercase;
+        }
+        .status-badge { padding: 5px 10px; border-radius: 4px; font-weight: bold; font-size: 0.85rem; color: white; }
+        .bg-grey { background: #999; } .bg-green { background: var(--nhs-bright-green); } .bg-red { background: var(--nhs-red); }
 
-        /* --- Footer --- */
+        iframe { width: 100%; height: 400px; border: 1px solid #ddd; border-radius: 4px; }
+
+        /* Footer */
         .footer {
-            width: 100%;
-            text-align: center;
-            padding: 20px 0;
-            color: #999;
-            font-size: 0.9rem;
-            margin-top: auto;
-            border-top: 1px solid #e0e0e0;
-            background: white;
-            display: flex;
-            flex-direction: column;
-            align-items: center;
-            gap: 8px;
+            width: 100%; text-align: center; padding: 20px 0; color: #999; font-size: 0.9rem; margin-top: auto; border-top: 1px solid #e0e0e0;
+            background: white; display: flex; flex-direction: column; align-items: center; gap: 8px;
         }
         .footer-row { display: flex; align-items: center; gap: 10px; }
         .footer-link { color: var(--nhs-blue); font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; }
         .divider { color: #ccc; }
         .reset-symbol { color: var(--nhs-blue); cursor: pointer; font-weight: bold; font-size: 1.1rem; border: none; background: none; padding: 0; margin-left: 5px; }
 
-        /* --- Modal --- */
+        /* Modal */
         #install-modal {
-            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 999;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 999;
         }
         .modal-content { background: white; padding: 25px; border-radius: 5px; max-width: 400px; width: 90%; }
         .instruction-step { margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
 
-        /* Camera */
         #video-container { position: relative; background: #000; overflow: hidden; border-radius: 4px; margin-bottom: 20px; }
         video { width: 100%; display: block; opacity: 0.9; }
 
         @media (max-width: 768px) {
             .container { padding: 15px; width: 100%; }
-            /* Collapse grid to single column stack on mobile */
             .validation-grid { grid-template-columns: 1fr; gap: 0; border: none; }
-            .v-header { display: none; } /* Hide table headers on mobile */
+            .v-header { display: none; }
             .v-row { display: flex; flex-direction: column; border: 1px solid #eee; margin-bottom: 15px; padding: 10px; background: #f9f9f9;}
             .v-cell { border: none; padding: 5px 0; background: transparent; }
             .v-label-cell { color: var(--nhs-blue); font-size: 0.8rem; text-transform: uppercase; }
             .v-match-cell { text-align: left; }
-            /* Add pseudo-labels for mobile view */
             .v-cell[data-label]::before { content: attr(data-label) ": "; font-weight: bold; color: #666; font-size: 0.8rem;}
         }
     </style>
@@ -268,7 +210,6 @@
             <p style="margin-bottom: 25px; color: #555; font-size: 0.95rem; text-align: center;">
                 Upload an ER PDF to verify metadata integrity and GPS location.
             </p>
-            
             <button class="btn" onclick="startCamera()">Scan QR Code (Camera)</button>
             <button class="btn btn-upload" onclick="document.getElementById('file-input').click()">Upload Evidence PDF</button>
             <input type="file" id="file-input" accept="image/*,application/pdf" onchange="handleFileUpload(this)">
@@ -276,7 +217,7 @@
 
         <div id="loading" class="hidden" style="text-align:center; padding:40px;">
             <div style="font-weight:bold; color:var(--nhs-blue); font-size:1.1rem; margin-bottom:10px;">ANALYZING EVIDENCE...</div>
-            <div style="color:#777; font-size:0.9rem;">Extracting cryptographic metadata & validating text</div>
+            <div style="color:#777; font-size:0.9rem;">Extracting cryptographic metadata & validating text...</div>
         </div>
 
         <div id="video-container" class="hidden">
@@ -290,19 +231,21 @@
         <div id="results" class="hidden result-box">
             
             <div id="status-banner" class="alert-box hidden"></div>
-
             <div id="failure-details" class="failure-box hidden"></div>
 
             <div class="report-section-title">Verified Metadata</div>
-            
-            <div class="validation-grid" id="validation-grid">
-                </div>
+            <div class="validation-grid" id="validation-grid"></div>
 
             <div id="reference-box" class="ref-box hidden">
-                <div class="ref-header">
-                    <span>REFERENCE VERIFICATION</span>
+                <div class="ref-header">REFERENCE VERIFICATION</div>
+                
+                <div id="ref-algo-content"></div>
+
+                <div id="manual-check-section" class="manual-input-group hidden">
+                    <label class="manual-label">Manual Check: Enter Reference Number from Document</label>
+                    <input type="text" id="manual-ref-input" class="ref-input" placeholder="e.g. ER-12345678" oninput="checkManualRef()">
+                    <div id="manual-match-status" class="status-badge bg-grey" style="align-self: flex-start;">PENDING INPUT</div>
                 </div>
-                <div id="ref-content"></div>
             </div>
 
             <div class="report-section-title">GPS Location Manual Check</div>
@@ -314,14 +257,8 @@
         <div class="modal-content">
             <span style="float:right;cursor:pointer;font-size:1.5rem;" onclick="toggleModal()">×</span>
             <h3 style="color:var(--nhs-blue); margin-top:0;">Install App on Phone</h3>
-            <div class="instruction-step">
-                <span style="color:var(--nhs-blue);font-weight:bold;display:block;"> iOS (Safari)</span>
-                1. Tap <strong>Share</strong> icon.<br>2. Tap <strong>"Add to Home Screen"</strong>.
-            </div>
-            <div class="instruction-step">
-                <span style="color:var(--nhs-blue);font-weight:bold;display:block;">🤖 Android (Chrome)</span>
-                1. Tap <strong>Menu</strong> (3 dots).<br>2. Tap <strong>"Add to Home screen"</strong>.
-            </div>
+            <div class="instruction-step"><span style="color:var(--nhs-blue);font-weight:bold;display:block;"> iOS</span>Tap Share > "Add to Home Screen".</div>
+            <div class="instruction-step"><span style="color:var(--nhs-blue);font-weight:bold;display:block;">🤖 Android</span>Tap Menu > "Add to Home screen".</div>
             <button class="btn" onclick="toggleModal()" style="margin:0;">Close</button>
         </div>
     </div>
@@ -335,7 +272,7 @@
         <div class="footer-row">
             <span>© Digestiv</span>
             <span class="divider">|</span>
-            <span>Version 2.1</span>
+            <span>Version 2.3</span>
             <button class="reset-symbol" onclick="location.reload()" title="Reset Tool">↻</button>
         </div>
     </div>
@@ -344,15 +281,13 @@
     const video = document.getElementById("video");
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
-    // HASH_KEY remains in code but hidden from UI display
     const HASH_KEY = "ER-GE0L0CATE"; 
 
     let scanning = false;
     let streamRef = null;
+    let currentQRRef = "";
 
-    function toggleModal() {
-        document.getElementById('install-modal').classList.toggle('hidden');
-    }
+    function toggleModal() { document.getElementById('install-modal').classList.toggle('hidden'); }
 
     async function handleFileUpload(input) {
         const file = input.files[0];
@@ -361,10 +296,7 @@
         document.getElementById('input-section').classList.add('hidden');
         document.getElementById('loading').classList.remove('hidden');
         document.getElementById('results').classList.add('hidden');
-        // Reset failure box
         document.getElementById('failure-details').classList.add('hidden');
-        document.getElementById('failure-details').innerHTML = "";
-
 
         try {
             if (file.type === "application/pdf") {
@@ -382,27 +314,22 @@
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
         const page = await pdf.getPage(1);
-        
         const textContent = await page.getTextContent();
         const pageText = textContent.items.map(item => item.str).join(" ");
         
         let code = null;
         const scales = [3.0, 2.0, 1.5, 1.0]; 
-        
         for (let scale of scales) {
             const viewport = page.getViewport({ scale: scale });
             const pdfCanvas = document.createElement('canvas');
             const pdfCtx = pdfCanvas.getContext('2d');
             pdfCanvas.height = viewport.height;
             pdfCanvas.width = viewport.width;
-
             await page.render({ canvasContext: pdfCtx, viewport: viewport }).promise;
-
             const imageData = pdfCtx.getImageData(0, 0, pdfCanvas.width, pdfCanvas.height);
             code = jsQR(imageData.data, imageData.width, imageData.height);
             if (code) break;
         }
-        
         finishProcessing(code, pageText);
     }
 
@@ -418,6 +345,7 @@
                 tempCtx.drawImage(img, 0, 0);
                 const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
                 const code = jsQR(imageData.data, imageData.width, imageData.height);
+                // Passing null for pageText to indicate image mode
                 finishProcessing(code, null); 
             };
             img.src = reader.result;
@@ -449,14 +377,39 @@
         return null;
     }
 
-    // Normalize string for comparison (remove spaces, lowercase)
     function normalize(str) {
        return str ? str.toString().replace(/[\s,]+/g, '').toLowerCase().trim() : "";
     }
 
+    // Robust containment check (replaces strict equality)
     function checkMatch(qrValue, pdfValue) {
-        if (!qrValue || !pdfValue || qrValue === "Not Found" || pdfValue === "Not Found") return false;
+        if (!qrValue || !pdfValue || qrValue === "Not Found" || pdfValue === "Not Found" || pdfValue === "N/A - Image Scan") return false;
         return normalize(pdfValue).includes(normalize(qrValue));
+    }
+
+    function checkManualRef() {
+        const input = document.getElementById('manual-ref-input');
+        const statusBadge = document.getElementById('manual-match-status');
+        const userVal = normalize(input.value);
+        const qrVal = normalize(currentQRRef);
+
+        if (userVal.length === 0) {
+            statusBadge.textContent = "PENDING INPUT";
+            statusBadge.className = "status-badge bg-grey";
+            return;
+        }
+        if (userVal === qrVal) {
+            statusBadge.innerHTML = "MATCH CONFIRMED ✔";
+            statusBadge.className = "status-badge bg-green";
+            const banner = document.getElementById('status-banner');
+            if (banner.textContent.includes("MANUAL CHECK")) {
+                banner.className = "alert-box alert-success";
+                banner.innerHTML = `<span class="alert-header">✅ REFERENCE VERIFIED</span> Manual cross-check successful.`;
+            }
+        } else {
+            statusBadge.innerHTML = "MISMATCH ✘";
+            statusBadge.className = "status-badge bg-red";
+        }
     }
 
     function displayResults(rawInput, pageText) {
@@ -465,12 +418,12 @@
         const banner = document.getElementById('status-banner');
         const failureBox = document.getElementById('failure-details');
         const refBox = document.getElementById('reference-box');
-        const refContent = document.getElementById('ref-content');
+        const refContent = document.getElementById('ref-algo-content');
         
         let data = rawInput;
         try { data = JSON.parse(rawInput); } catch(e) { /* Assume string */ }
 
-        // --- EXTRACT FIELDS (QR DATA) ---
+        // --- EXTRACT QR DATA ---
         const qrEmp = smartExtract(data, ['emp', 'lead employer', 'nhs trust', 'trust'], /(?:EMP|EMPLOYER|TRUST)["\s:]+([A-Za-z0-9\s'.&]+)/i) || "Not Found";
         const qrTime = smartExtract(data, ['time', 'device time', 'verification time'], /(\d{2}\/\d{2}\/\d{4}[,\s]+\d{2}:\d{2}:\d{2})/i) || "Not Found";
         
@@ -484,33 +437,31 @@
 
         const qrAltVal = parseFloat(smartExtract(data, ['altitude', 'alt'], /(?:Altitude|Alt)["\s:]+("?0"?)/i) || 0);
         const qrRefID = smartExtract(data, ['reference', 'ref'], /(?:REFERENCE|REF)["\s:]+([A-Za-z0-9-]+)/i) || "Not Found";
+        currentQRRef = qrRefID;
 
-        // --- EXTRACT FIELDS (PDF TEXT DATA - Simple Regex find) ---
-        // Note: This is basic text scraping. Complex PDF layouts might require more advanced parsing.
-        const findInPdf = (regex) => {
-            if(!pageText) return "Not Found";
-            const match = pageText.match(regex);
-            return match ? match[1].trim() : "Not Found";
-        }
+        // --- PDF TEXT MATCHING (ROBUST "CONTAINS" CHECK) ---
+        // If pageText is null, we are in Image mode
+        const isPdfPresent = (pageText !== null);
+        
+        // Instead of strict regex scraping, we simply check if the QR value exists in the text
+        const checkPdfContains = (val) => {
+            if (!isPdfPresent) return "N/A - Image Scan";
+            if (val === "Not Found") return "Not Found";
+            return normalize(pageText).includes(normalize(val)) ? "Match Found in Text" : "Not Found in Text";
+        };
 
-        // Try to find the values printed next to headers in the PDF text
-        const pdfEmp = findInPdf(/(?:Employer|Trust)[\s:]+([A-Za-z0-9\s'.&]+?)(?=\n|Clinician|$)/i);
-        // Look for date/time pattern common in these PDFs
-        const pdfTime = findInPdf(/(\d{2}\/\d{2}\/\d{4}[,\s]+\d{2}:\d{2}:\d{2})/i);
-        // Look for coordinate pattern
-        const pdfLoc = findInPdf(/(-?\d{1,3}\.\d+[\s,]+-?\d{1,3}\.\d+)/i);
+        const pdfEmpStatus = checkPdfContains(qrEmp);
+        const pdfTimeStatus = checkPdfContains(qrTime);
+        const pdfLocStatus = checkPdfContains(qrLoc);
 
-
-        // --- VALIDATION CHECKS ---
-        const timeMatch = checkMatch(qrTime, pdfTime);
-        const locMatch = checkMatch(qrLoc, pdfLoc);
+        // --- VALIDATION STATUS ---
+        // Only run text matching if PDF is present.
+        const timeMatch = isPdfPresent ? (pdfTimeStatus === "Match Found in Text") : false;
+        const locMatch = isPdfPresent ? (pdfLocStatus === "Match Found in Text") : false;
         const isSpoofed = (qrAltVal === 0);
         const refExists = (qrRefID !== "Not Found");
 
-        // Determine Overall Success
-        const allChecksPassed = timeMatch && locMatch && !isSpoofed && refExists;
-
-        // --- RENDER 4-COLUMN GRID ---
+        // --- RENDER GRID ---
         let gridHtml = `
             <div class="v-header">Field Label</div>
             <div class="v-header">QR Data Content</div>
@@ -518,71 +469,75 @@
             <div class="v-header">Match</div>
         `;
 
-        // Helper for grid rows
-        const buildRow = (label, qrVal, pdfVal, isMatch, extraHtml="") => `
+        const buildRow = (label, qrVal, pdfStatus, isMatch, showMatch=true) => `
             <div class="v-row">
                 <div class="v-cell v-label-cell">${label}</div>
-                <div class="v-cell" data-label="QR Data">${qrVal} ${extraHtml}</div>
-                <div class="v-cell" data-label="PDF Text">${pdfVal}</div>
-                <div class="v-cell v-match-cell" data-label="Match">${isMatch ? '<span class="tick">✔</span>' : '<span class="cross">✘</span>'}</div>
+                <div class="v-cell" data-label="QR Data">${qrVal}</div>
+                <div class="v-cell" data-label="PDF Text">${pdfStatus}</div>
+                <div class="v-cell v-match-cell" data-label="Match">
+                    ${!showMatch ? '<span class="info-text">Info Only</span>' : 
+                      (isPdfPresent ? (isMatch ? '<span class="tick">✔</span>' : '<span class="cross">✘</span>') : '<span style="color:#aaa;">-</span>')}
+                </div>
             </div>
         `;
 
-        gridHtml += buildRow("Lead Employer", qrEmp, pdfEmp, checkMatch(qrEmp, pdfEmp));
-        gridHtml += buildRow("Time / Date", qrTime, pdfTime, timeMatch);
-        gridHtml += buildRow("GPS Location", qrLoc, pdfLoc, locMatch);
+        // Lead Employer: Info Only (No tick/cross)
+        gridHtml += buildRow("Lead Employer", qrEmp, pdfEmpStatus, false, false);
+        // Time & GPS: Strict Matching
+        gridHtml += buildRow("Time / Date", qrTime, pdfTimeStatus, timeMatch);
+        gridHtml += buildRow("GPS Location", qrLoc, pdfLocStatus, locMatch);
         
-        // Altitude Row (Special Case)
+        // Altitude
         const altHtml = isSpoofed ? '<br><span class="warning-text">⚠️ Caution: this GPS may be generated by a desktop or spoofed</span>' : '';
         gridHtml += `
             <div class="v-row">
                 <div class="v-cell v-label-cell">Altitude Check</div>
                 <div class="v-cell" data-label="QR Data">${qrAltVal}m ${altHtml}</div>
-                <div class="v-cell" data-label="PDF Text">N/A (QR Check Only)</div>
+                <div class="v-cell" data-label="PDF Text">N/A</div>
                 <div class="v-cell v-match-cell" data-label="Match">${!isSpoofed ? '<span class="tick">✔</span>' : '<span class="cross">✘</span>'}</div>
             </div>
         `;
-
         gridContainer.innerHTML = gridHtml;
 
-        // --- RENDER BANNERS & FAILURE BOX ---
-        failureBox.innerHTML = ""; // Clear previous errors
-
-        if (allChecksPassed) {
-            // SUCCESS STATE
-            banner.className = "alert-box alert-success";
-            banner.innerHTML = `
-                <span class="alert-header">✅ VERIFIED AUTHENTIC</span>
-                <ul class="success-list">
-                    <li>✅ GPS Match - QR, PDF Text, Reference</li>
-                    <li>✅ Time/Date Match - QR, PDF Text</li>
-                </ul>
-            `;
-            failureBox.classList.add('hidden');
-        } else {
-            // FAILURE STATE
-            banner.className = "alert-box alert-danger";
-            banner.innerHTML = `<span class="alert-header">❌ VERIFICATION FAILURE</span>`;
-            
-            let failureHtml = "";
-            if (!timeMatch) failureHtml += `<div class="failure-item">Time/Date Mismatch: QR data does not match printed text.</div>`;
-            if (!locMatch) failureHtml += `<div class="failure-item">GPS Location Mismatch: QR coordinates do not match printed text.</div>`;
-            if (isSpoofed) failureHtml += `<div class="failure-item">Spoof Detected: Altitude is 0m (Proxy/Emulator signature).</div>`;
-            if (!refExists) failureHtml += `<div class="failure-item">Reference Missing: Valid Reference ID not found in QR.</div>`;
-            
-            failureHtml += `<div class="failure-instruction">Alternative evidence is required.</div>`;
-            
-            failureBox.innerHTML = failureHtml;
-            failureBox.classList.remove('hidden');
-        }
-        banner.classList.remove('hidden');
-
-        // --- RENDER REFERENCE BOX ---
+        // --- BANNERS & REFERENCE BOX ---
+        failureBox.innerHTML = ""; 
+        const refAlgoPassed = refExists && qrTime !== "Not Found" && qrLoc !== "Not Found";
+        
+        // Display Reverse Algorithm Logic (Visible for PDF AND Images)
         refBox.classList.remove('hidden');
         refContent.innerHTML = `
             <div class="ref-row"><span class="ref-label">Reference ID:</span><span>${qrRefID}</span></div>
-            <div class="ref-row"><span class="ref-label">Algorithm Check:</span><span class="${allChecksPassed ? 'tick' : 'cross'}">${allChecksPassed ? 'PASS ✔' : 'FAIL ✘'}</span></div>
+            <div class="ref-row"><span class="ref-label">Extracted Date:</span><span class="${refAlgoPassed ? 'ref-success' : 'ref-fail'}">${qrTime.split(',')[0] || qrTime} ${refAlgoPassed ? '✔' : '✘'}</span></div>
+            <div class="ref-row"><span class="ref-label">Extracted Time:</span><span class="${refAlgoPassed ? 'ref-success' : 'ref-fail'}">${qrTime.split(',')[1] || ''} ${refAlgoPassed ? '✔' : '✘'}</span></div>
+            <div class="ref-row"><span class="ref-label">Extracted GPS:</span><span class="${refAlgoPassed ? 'ref-success' : 'ref-fail'}">${qrLoc} ${refAlgoPassed ? '✔' : '✘'}</span></div>
         `;
+
+        // Handle Image vs PDF Logic
+        if (isPdfPresent) {
+            document.getElementById('manual-check-section').classList.add('hidden');
+            if (timeMatch && locMatch && !isSpoofed && refAlgoPassed) {
+                banner.className = "alert-box alert-success";
+                banner.innerHTML = `<span class="alert-header">✅ VERIFIED AUTHENTIC</span><ul class="success-list"><li>✅ GPS Match - QR, PDF Text, Reference</li><li>✅ Time/Date Match - QR, PDF Text</li></ul>`;
+                failureBox.classList.add('hidden');
+            } else {
+                banner.className = "alert-box alert-danger";
+                banner.innerHTML = `<span class="alert-header">❌ VERIFICATION FAILURE</span>`;
+                let failureHtml = "";
+                if (!timeMatch) failureHtml += `<div class="failure-item">Time/Date Mismatch</div>`;
+                if (!locMatch) failureHtml += `<div class="failure-item">GPS Location Mismatch</div>`;
+                if (isSpoofed) failureHtml += `<div class="failure-item">Spoof Detected (Altitude 0)</div>`;
+                failureHtml += `<div class="failure-instruction">Alternative evidence is required.</div>`;
+                failureBox.innerHTML = failureHtml;
+                failureBox.classList.remove('hidden');
+            }
+        } else {
+            // IMAGE MODE
+            document.getElementById('manual-check-section').classList.remove('hidden');
+            banner.className = "alert-box alert-warning";
+            banner.innerHTML = `<span class="alert-header">⚠️ MANUAL CHECK REQUIRED</span> Please manually verify the Reference ID below.`;
+            failureBox.classList.add('hidden');
+        }
+        banner.classList.remove('hidden');
 
         // --- MAP ---
         let cleanLat = "", cleanLng = "";
@@ -594,9 +549,7 @@
                 cleanLng = parts[1].trim();
             }
         }
-
         if (cleanLat && cleanLng) {
-            // Changed t=h (hybrid) to t=m (standard map)
             document.getElementById('map-frame').innerHTML = 
                 `<iframe src="https://maps.google.com/maps?q=${cleanLat},${cleanLng}&t=m&z=15&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>`;
         } else {
@@ -604,7 +557,6 @@
         }
     }
 
-    // --- Camera ---
     function startCamera() {
         document.getElementById('input-section').classList.add('hidden');
         document.getElementById('video-container').classList.remove('hidden');
