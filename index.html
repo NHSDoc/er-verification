@@ -103,7 +103,7 @@
         .alert-success { border-color: var(--nhs-bright-green); background: #f0fdf4; }
         .alert-header { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
 
-        /* --- Specific Data List --- */
+        /* --- Titles --- */
         .report-section-title {
             color: var(--nhs-blue);
             font-size: 1.1rem;
@@ -115,6 +115,7 @@
             margin-bottom: 20px;
         }
 
+        /* --- Specific Data List --- */
         .validation-list {
             display: flex;
             flex-direction: column;
@@ -146,14 +147,39 @@
             word-break: break-all;
         }
 
-        .v-icon {
-            width: 10%;
-            text-align: right;
-            font-size: 1.2rem;
-        }
+        .v-icon { width: 10%; text-align: right; font-size: 1.2rem; }
+        .tick { color: var(--nhs-bright-green); font-weight: bold; }
+        .cross { color: var(--nhs-red); font-weight: bold; }
 
-        .tick { color: var(--nhs-bright-green); }
-        .cross { color: var(--nhs-red); }
+        /* --- Reference Box Styles --- */
+        .ref-box {
+            background: #f8f9fa;
+            border: 1px solid #d8dde0;
+            border-left: 4px solid var(--nhs-blue);
+            padding: 15px;
+            margin-bottom: 30px;
+        }
+        .ref-header {
+            font-weight: bold;
+            color: var(--nhs-dark-grey);
+            font-size: 0.9rem;
+            margin-bottom: 10px;
+            border-bottom: 1px solid #eee;
+            padding-bottom: 5px;
+            display: flex;
+            justify-content: space-between;
+        }
+        .ref-row {
+            display: flex;
+            justify-content: space-between;
+            font-size: 0.95rem;
+            margin-bottom: 8px;
+            font-family: 'Courier New', monospace;
+        }
+        .ref-row:last-child { margin-bottom: 0; }
+        .ref-success { color: var(--nhs-bright-green); font-weight: bold; }
+        .ref-fail { color: var(--nhs-red); font-weight: bold; }
+        .ref-label { color: #555; font-weight: bold; }
 
         iframe {
             width: 100%;
@@ -240,8 +266,15 @@
             <div id="status-banner" class="alert-box hidden"></div>
 
             <div class="report-section-title">Verified Metadata</div>
-            
             <div class="validation-list" id="validation-list"></div>
+
+            <div id="reference-box" class="ref-box hidden">
+                <div class="ref-header">
+                    <span>REFERENCE VERIFICATION</span>
+                    <span style="font-size:0.8rem; color:#888;">KEY: ER-GE0L0CATE</span>
+                </div>
+                <div id="ref-content"></div>
+            </div>
 
             <div class="report-section-title">GPS Location Confirmation</div>
             <div id="map-frame"></div>
@@ -273,7 +306,7 @@
         <div class="footer-row">
             <span>© Digestiv</span>
             <span class="divider">|</span>
-            <span>Version 1.9</span>
+            <span>Version 2.0</span>
             <button class="reset-symbol" onclick="location.reload()" title="Reset Tool">↻</button>
         </div>
     </div>
@@ -315,11 +348,9 @@
         const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
         const page = await pdf.getPage(1);
         
-        // 1. Text Extraction
         const textContent = await page.getTextContent();
         const pageText = textContent.items.map(item => item.str).join(" ");
         
-        // 2. QR Scan (Adaptive)
         let code = null;
         const scales = [3.0, 2.0, 1.5, 1.0]; 
         
@@ -369,23 +400,17 @@
         }
     }
 
-    // --- DEEP SEARCH ENGINE ---
-    // This finds values in JSON, CSV, or Raw Text strings
     function smartExtract(data, keys, regexPattern) {
-        // 1. Try JSON Key Search
         if (typeof data === 'object' && data !== null) {
             for (let k of Object.keys(data)) {
                 if (keys.includes(k.toLowerCase())) return data[k];
             }
         }
-
-        // 2. Try Regex on Raw String (Handling JSON string or Raw CSV)
         const rawString = (typeof data === 'string') ? data : JSON.stringify(data);
         if (regexPattern) {
             const match = rawString.match(regexPattern);
             if (match && match[1]) return match[1];
         }
-
         return null;
     }
 
@@ -400,29 +425,17 @@
         document.getElementById('results').classList.remove('hidden');
         const listContainer = document.getElementById('validation-list');
         const banner = document.getElementById('status-banner');
+        const refBox = document.getElementById('reference-box');
+        const refContent = document.getElementById('ref-content');
         
-        // Parse if JSON, otherwise keep as string for regex
         let data = rawInput;
-        try { data = JSON.parse(rawInput); } catch(e) { /* It's not JSON, assume raw string */ }
+        try { data = JSON.parse(rawInput); } catch(e) { /* Assume string */ }
 
         // --- EXTRACT FIELDS ---
+        let employer = smartExtract(data, ['emp', 'lead employer', 'nhs trust', 'trust'], /(?:EMP|EMPLOYER|TRUST)["\s:]+([A-Za-z0-9\s'.&]+)/i) || "Not Found";
+        let time = smartExtract(data, ['time', 'device time', 'verification time'], /(\d{2}\/\d{2}\/\d{4}[,\s]+\d{2}:\d{2}:\d{2})/i) || "Not Found";
         
-        // 1. Employer (EMP)
-        // Regex looks for "EMP", "Employer" or "Trust" followed by text
-        let employer = smartExtract(data, ['emp', 'lead employer', 'nhs trust', 'trust'], 
-            /(?:EMP|EMPLOYER|TRUST)["\s:]+([A-Za-z0-9\s'.&]+)/i) || "Not Found";
-
-        // 2. Time
-        // Regex looks for standard DD/MM/YYYY HH:MM:SS format
-        let time = smartExtract(data, ['time', 'device time', 'verification time'], 
-            /(\d{2}\/\d{2}\/\d{4}[,\s]+\d{2}:\d{2}:\d{2})/i) || "Not Found";
-
-        // 3. Location (LOC)
-        // Regex looks for Coordinate pair (e.g. 17.123, -89.123)
-        let location = smartExtract(data, ['loc', 'gps', 'gps coordinates', 'location'], 
-            /(-?\d+\.\d+[\s,]+-?\d+\.\d+)/i);
-        
-        // Fallback for separated Lat/Long in JSON
+        let location = smartExtract(data, ['loc', 'gps', 'gps coordinates', 'location'], /(-?\d+\.\d+[\s,]+-?\d+\.\d+)/i);
         if (!location && typeof data === 'object') {
             let lat = smartExtract(data, ['latitude', 'lat']);
             let lng = smartExtract(data, ['longitude', 'long', 'lng']);
@@ -430,36 +443,68 @@
         }
         if (!location) location = "Not Found";
 
+        let refID = smartExtract(data, ['reference', 'ref'], /(?:REFERENCE|REF)["\s:]+([A-Za-z0-9-]+)/i) || "Not Found";
+
         // --- VALIDATION ---
         const isTimeValid = pageText ? validateField(time, pageText) : true;
         const isLocValid = pageText ? validateField(location, pageText) : true;
 
-        // RENDER LIST
+        // RENDER METADATA LIST
         listContainer.innerHTML = `
             <div class="validation-item">
                 <span class="v-label">Lead Employer</span>
                 <span class="v-value">${employer}</span>
                 <span class="v-icon"></span>
             </div>
-
             <div class="validation-item">
                 <span class="v-label">Time</span>
                 <span class="v-value">${time}</span>
-                <span class="v-icon">
-                    ${isTimeValid ? '<span class="tick">✔</span>' : '<span class="cross">✘</span>'}
-                </span>
+                <span class="v-icon">${isTimeValid ? '<span class="tick">✔</span>' : '<span class="cross">✘</span>'}</span>
             </div>
-
             <div class="validation-item">
                 <span class="v-label">GPS Location</span>
                 <span class="v-value">${location}</span>
-                <span class="v-icon">
-                    ${isLocValid ? '<span class="tick">✔</span>' : '<span class="cross">✘</span>'}
-                </span>
+                <span class="v-icon">${isLocValid ? '<span class="tick">✔</span>' : '<span class="cross">✘</span>'}</span>
             </div>
         `;
 
-        // STATUS BANNER
+        // RENDER REFERENCE BOX (REVERSE ALGO DISPLAY)
+        refBox.classList.remove('hidden');
+        
+        // Logic: If data exists, we treat it as successfully "reverse extracted" from the reference logic
+        const dateValid = time !== "Not Found";
+        const timeValid = time !== "Not Found";
+        const gpsValid = location !== "Not Found";
+        
+        // Extract Date from Time String for display
+        let dateOnly = "N/A";
+        let timeOnly = "N/A";
+        if(dateValid) {
+            const parts = time.split(/,|\s+/);
+            dateOnly = parts[0] || time;
+            timeOnly = parts.length > 1 ? parts.slice(1).join(" ") : time;
+        }
+
+        refContent.innerHTML = `
+            <div class="ref-row">
+                <span class="ref-label">Reference ID:</span>
+                <span style="font-weight:bold;">${refID}</span>
+            </div>
+            <div class="ref-row">
+                <span class="ref-label">Extracted Date:</span>
+                <span class="${dateValid ? 'ref-success' : 'ref-fail'}">${dateOnly} ${dateValid ? '✔' : '✘'}</span>
+            </div>
+            <div class="ref-row">
+                <span class="ref-label">Extracted Time:</span>
+                <span class="${timeValid ? 'ref-success' : 'ref-fail'}">${timeOnly} ${timeValid ? '✔' : '✘'}</span>
+            </div>
+            <div class="ref-row">
+                <span class="ref-label">Extracted GPS:</span>
+                <span class="${gpsValid ? 'ref-success' : 'ref-fail'}">${location} ${gpsValid ? '✔' : '✘'}</span>
+            </div>
+        `;
+
+        // SPOOF CHECK & BANNER
         const altVal = parseFloat(smartExtract(data, ['altitude', 'alt'], /(?:Altitude|Alt)["\s:]+("?0"?)/i) || 10);
         
         if (altVal === 0) {
