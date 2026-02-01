@@ -241,8 +241,7 @@
 
             <div class="report-section-title">Verified Metadata</div>
             
-            <div class="validation-list" id="validation-list">
-                </div>
+            <div class="validation-list" id="validation-list"></div>
 
             <div class="report-section-title">GPS Location Confirmation</div>
             <div id="map-frame"></div>
@@ -274,7 +273,7 @@
         <div class="footer-row">
             <span>© Digestiv</span>
             <span class="divider">|</span>
-            <span>Version 1.8</span>
+            <span>Version 1.9</span>
             <button class="reset-symbol" onclick="location.reload()" title="Reset Tool">↻</button>
         </div>
     </div>
@@ -316,9 +315,11 @@
         const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
         const page = await pdf.getPage(1);
         
+        // 1. Text Extraction
         const textContent = await page.getTextContent();
         const pageText = textContent.items.map(item => item.str).join(" ");
         
+        // 2. QR Scan (Adaptive)
         let code = null;
         const scales = [3.0, 2.0, 1.5, 1.0]; 
         
@@ -368,15 +369,23 @@
         }
     }
 
-    // --- Smart Case-Insensitive Search ---
-    function getValue(data, possibleKeys) {
-        // Create lower-case map of data keys
-        const keys = Object.keys(data);
-        for (let key of keys) {
-            if (possibleKeys.includes(key.toLowerCase())) {
-                return data[key];
+    // --- DEEP SEARCH ENGINE ---
+    // This finds values in JSON, CSV, or Raw Text strings
+    function smartExtract(data, keys, regexPattern) {
+        // 1. Try JSON Key Search
+        if (typeof data === 'object' && data !== null) {
+            for (let k of Object.keys(data)) {
+                if (keys.includes(k.toLowerCase())) return data[k];
             }
         }
+
+        // 2. Try Regex on Raw String (Handling JSON string or Raw CSV)
+        const rawString = (typeof data === 'string') ? data : JSON.stringify(data);
+        if (regexPattern) {
+            const match = rawString.match(regexPattern);
+            if (match && match[1]) return match[1];
+        }
+
         return null;
     }
 
@@ -387,35 +396,41 @@
         return cleanPage.includes(cleanQR);
     }
 
-    function displayResults(rawJson, pageText) {
+    function displayResults(rawInput, pageText) {
         document.getElementById('results').classList.remove('hidden');
         const listContainer = document.getElementById('validation-list');
         const banner = document.getElementById('status-banner');
         
-        let data = {};
-        try { data = JSON.parse(rawJson); } catch(e) { data = { "RAW DATA": rawJson }; }
+        // Parse if JSON, otherwise keep as string for regex
+        let data = rawInput;
+        try { data = JSON.parse(rawInput); } catch(e) { /* It's not JSON, assume raw string */ }
 
-        // --- SMART EXTRACTION ---
-        // Looks for keys regardless of case (e.g. "GPS COORDINATES", "Gps Coordinates", "LOC")
+        // --- EXTRACT FIELDS ---
         
-        // 1. Employer
-        let employer = getValue(data, ['lead employer', 'employer', 'nhs trust', 'trust', 'emp']) || "Not Found";
-        
+        // 1. Employer (EMP)
+        // Regex looks for "EMP", "Employer" or "Trust" followed by text
+        let employer = smartExtract(data, ['emp', 'lead employer', 'nhs trust', 'trust'], 
+            /(?:EMP|EMPLOYER|TRUST)["\s:]+([A-Za-z0-9\s'.&]+)/i) || "Not Found";
+
         // 2. Time
-        let time = getValue(data, ['device time', 'time', 'uk network verification time']) || "Not Found";
+        // Regex looks for standard DD/MM/YYYY HH:MM:SS format
+        let time = smartExtract(data, ['time', 'device time', 'verification time'], 
+            /(\d{2}\/\d{2}\/\d{4}[,\s]+\d{2}:\d{2}:\d{2})/i) || "Not Found";
+
+        // 3. Location (LOC)
+        // Regex looks for Coordinate pair (e.g. 17.123, -89.123)
+        let location = smartExtract(data, ['loc', 'gps', 'gps coordinates', 'location'], 
+            /(-?\d+\.\d+[\s,]+-?\d+\.\d+)/i);
         
-        // 3. Location
-        let location = getValue(data, ['gps coordinates', 'gps', 'loc', 'location', 'coordinates']);
-        
-        // Fallback: Construct location if separate Lat/Long keys exist
-        if (!location) {
-            let lat = getValue(data, ['latitude', 'lat']);
-            let lng = getValue(data, ['longitude', 'long', 'lng']);
+        // Fallback for separated Lat/Long in JSON
+        if (!location && typeof data === 'object') {
+            let lat = smartExtract(data, ['latitude', 'lat']);
+            let lng = smartExtract(data, ['longitude', 'long', 'lng']);
             if (lat && lng) location = `${lat}, ${lng}`;
         }
         if (!location) location = "Not Found";
 
-        // VALIDATION
+        // --- VALIDATION ---
         const isTimeValid = pageText ? validateField(time, pageText) : true;
         const isLocValid = pageText ? validateField(location, pageText) : true;
 
@@ -444,8 +459,8 @@
             </div>
         `;
 
-        // SPOOF CHECK & BANNER
-        const altVal = parseFloat(getValue(data, ['altitude', 'alt', 'elevation']) || 10);
+        // STATUS BANNER
+        const altVal = parseFloat(smartExtract(data, ['altitude', 'alt'], /(?:Altitude|Alt)["\s:]+("?0"?)/i) || 10);
         
         if (altVal === 0) {
             banner.className = "alert-box alert-danger";
@@ -459,11 +474,9 @@
         }
         banner.classList.remove('hidden');
 
-        // MAP GENERATION
+        // MAP
         let cleanLat = "", cleanLng = "";
-        
         if (location !== "Not Found") {
-            // Remove any non-numeric chars except comma, dot, minus
             const cleanLoc = location.toString().replace(/[^\d.,-]/g, '');
             if (cleanLoc.includes(",")) {
                 const parts = cleanLoc.split(",");
@@ -473,7 +486,6 @@
         }
 
         if (cleanLat && cleanLng) {
-            // Using standard Google Maps Embed API format
             document.getElementById('map-frame').innerHTML = 
                 `<iframe src="https://maps.google.com/maps?q=${cleanLat},${cleanLng}&t=k&z=15&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>`;
         } else {
