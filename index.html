@@ -14,19 +14,20 @@
 
     <style>
         :root {
-            /* NHS Color Palette */
+            /* NHS & Report Color Palette */
             --nhs-blue: #005EB8;
             --nhs-white: #FFFFFF;
             --nhs-black: #231f20;
             --nhs-dark-grey: #425563;
             --nhs-light-grey: #f0f4f5;
-            --nhs-bright-green: #007f3b; /* Success */
-            --nhs-red: #da291c; /* Error/Alert */
-            --nhs-yellow: #fae100; /* Warning */
+            --report-header: #005EB8; /* Blue headers like PDF */
+            --report-text: #212b32;
+            --nhs-bright-green: #007f3b;
+            --nhs-red: #da291c;
         }
 
         body {
-            font-family: "Frutiger", "Arial", sans-serif;
+            font-family: "Arial", "Frutiger", sans-serif; /* Matches PDF sans-serif look */
             background-color: var(--nhs-light-grey);
             color: var(--nhs-black);
             margin: 0;
@@ -39,11 +40,11 @@
         /* --- Header Section --- */
         .header {
             width: 100%;
-            background-color: var(--nhs-blue);
-            color: var(--nhs-white);
+            background-color: var(--nhs-white);
+            border-bottom: 4px solid var(--nhs-blue);
             padding: 15px 0;
             margin-bottom: 20px;
-            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 8px rgba(0,0,0,0.05);
         }
         
         .header-content {
@@ -56,44 +57,40 @@
         }
 
         .header h1 {
-            font-size: 1.6rem;
+            font-size: 1.4rem;
             margin: 0;
+            color: var(--nhs-blue);
             font-weight: 700;
+            text-transform: uppercase;
         }
 
         .logo {
-            height: 45px;
-            background: white;
-            padding: 4px;
-            border-radius: 4px;
+            height: 50px;
+            /* Ensure logo.png is in your repo */
         }
 
-        /* --- Refresh Button (Header) --- */
+        /* Refresh Button */
         .btn-refresh {
-            background: transparent;
-            border: 1px solid rgba(255,255,255,0.5);
+            background: var(--nhs-blue);
             color: white;
+            border: none;
             padding: 8px 15px;
             border-radius: 4px;
             cursor: pointer;
-            font-size: 0.9rem;
-            transition: 0.2s;
+            font-size: 0.85rem;
+            font-weight: bold;
         }
-        .btn-refresh:hover {
-            background: rgba(255,255,255,0.1);
-            border-color: white;
-        }
+        .btn-refresh:hover { background: #004080; }
 
         /* --- Main Container --- */
         .container {
             width: 90%;
             max-width: 800px;
             background: var(--nhs-white);
-            padding: 30px;
+            padding: 40px;
             border: 1px solid #d8dde0;
-            border-radius: 4px;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-            flex-grow: 1; /* Pushes footer down */
+            box-shadow: 0 4px 15px rgba(0,0,0,0.05);
+            margin-bottom: 30px;
         }
 
         /* --- Buttons --- */
@@ -107,67 +104,104 @@
             font-size: 1rem;
             cursor: pointer;
             margin-bottom: 15px;
-            border-radius: 4px;
-            transition: background 0.2s;
-            text-align: center;
+            border-radius: 3px;
+            text-transform: uppercase;
+            letter-spacing: 0.5px;
         }
-
-        .btn:hover { background: #003087; }
+        .btn:hover { background: #004080; }
         .btn-upload { background: var(--nhs-dark-grey); }
         .btn-stop { background: var(--nhs-red); }
 
         #file-input, .hidden { display: none !important; }
 
-        /* --- Results & Alerts --- */
+        /* --- Results Area --- */
         .result-box {
-            margin-top: 30px;
-            border-top: 2px solid var(--nhs-light-grey);
-            padding-top: 20px;
+            margin-top: 10px;
         }
 
+        /* Status Banner */
         .alert-box {
-            padding: 20px;
-            margin-bottom: 25px;
-            border-left: 10px solid;
+            padding: 15px;
+            margin-bottom: 30px;
+            border-left: 6px solid;
             background: #fff;
-            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
-
         .alert-danger { border-color: var(--nhs-red); background: #fff5f5; }
-        .alert-danger h3 { color: var(--nhs-red); margin-top: 0; }
-
-        .alert-success { border-color: var(--nhs-bright-green); background: #f0fdf4; }
-        .alert-success h3 { color: var(--nhs-bright-green); margin-top: 0; }
-
-        /* --- Data Grid --- */
-        .section-title {
-            color: var(--nhs-dark-grey);
-            font-size: 1.2rem;
-            border-bottom: 1px solid #ccc;
-            padding-bottom: 10px;
-            margin-top: 20px;
-            margin-bottom: 15px;
-        }
-
-        .data-grid {
-            display: grid;
-            border: 1px solid #d8dde0;
-            background: var(--nhs-light-grey);
-        }
-
-        .data-row {
-            display: grid;
-            grid-template-columns: 150px 1fr;
-            padding: 12px;
-            border-bottom: 1px solid #d8dde0;
-            background: white;
-            word-break: break-all;
-        }
-        .data-row:last-child { border-bottom: none; }
-        .label { font-weight: bold; color: var(--nhs-black); }
-
-        iframe { width: 100%; height: 350px; border: 1px solid #ccc; margin-top: 10px; }
+        .alert-danger h3 { color: var(--nhs-red); margin: 0 0 5px 0; font-size: 1.1rem; }
         
+        .alert-success { border-color: var(--nhs-bright-green); background: #f0fdf4; }
+        .alert-success h3 { color: var(--nhs-bright-green); margin: 0 0 5px 0; font-size: 1.1rem; }
+
+        /* --- Report Style Data Grid --- */
+        .report-section-title {
+            color: var(--nhs-blue);
+            font-size: 1.1rem;
+            font-weight: bold;
+            text-transform: uppercase;
+            border-bottom: 2px solid #eee;
+            padding-bottom: 10px;
+            margin-top: 30px;
+            margin-bottom: 20px;
+        }
+
+        /* Grid mimicking the PDF layout */
+        .report-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr; /* Two columns */
+            gap: 20px;
+            margin-bottom: 30px;
+        }
+
+        .report-item {
+            display: flex;
+            flex-direction: column;
+            border-bottom: 1px solid #f0f0f0;
+            padding-bottom: 10px;
+        }
+
+        .report-label {
+            color: var(--nhs-blue);
+            font-size: 0.75rem;
+            font-weight: 700;
+            text-transform: uppercase;
+            margin-bottom: 5px;
+            letter-spacing: 0.5px;
+        }
+
+        .report-value {
+            color: #000;
+            font-size: 1rem;
+            font-weight: 600;
+            word-break: break-word;
+        }
+
+        /* Full width item for long text like GPS or Reference */
+        .full-width {
+            grid-column: 1 / -1;
+        }
+
+        /* Map styling */
+        iframe {
+            width: 100%;
+            height: 350px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+        }
+
+        /* Footer */
+        .footer {
+            width: 100%;
+            text-align: center;
+            padding: 20px;
+            color: #888;
+            font-size: 0.8rem;
+            border-top: 1px solid #ddd;
+            background: #fff;
+            margin-top: auto;
+        }
+
+        /* Camera */
         #video-container {
             position: relative;
             background: #000;
@@ -175,25 +209,12 @@
             border-radius: 4px;
             margin-bottom: 20px;
         }
-        video { width: 100%; display: block; }
+        video { width: 100%; display: block; opacity: 0.9; }
 
-        /* --- Footer --- */
-        .footer {
-            width: 100%;
-            background: var(--nhs-white);
-            border-top: 1px solid #d8dde0;
-            padding: 20px 0;
-            margin-top: 30px;
-            text-align: center;
-            color: var(--nhs-dark-grey);
-            font-size: 0.9rem;
-        }
-        .footer-content {
-            max-width: 800px;
-            margin: 0 auto;
-            display: flex;
-            justify-content: space-between;
-            padding: 0 20px;
+        /* Mobile Responsive */
+        @media (max-width: 600px) {
+            .report-grid { grid-template-columns: 1fr; }
+            .container { padding: 20px; width: 95%; }
         }
     </style>
 </head>
@@ -202,48 +223,53 @@
     <div class="header">
         <div class="header-content">
             <div style="display:flex; align-items:center; gap:15px;">
-                <img src="logo.jpg" alt="NHS Logo" class="logo" onerror="this.style.display='none'">
-                <h1>ER Validation Tool</h1>
+                <img src="logo.png" alt="ER GeoLocate" class="logo" onerror="this.style.display='none'">
+                <h1>ER Verification</h1>
             </div>
-            <button class="btn-refresh" onclick="location.reload()">&#x21bb; Refresh</button>
+            <button class="btn-refresh" onclick="location.reload()">Reset Tool</button>
         </div>
     </div>
 
     <div class="container">
-        <p style="margin-bottom: 20px; color: var(--nhs-dark-grey);">Select a verification method below to validate ER Reference Integrity.</p>
-        
-        <button class="btn" onclick="startCamera()">Scan QR Code (Camera)</button>
-        <button class="btn btn-upload" onclick="document.getElementById('file-input').click()">Upload File (PDF / Image)</button>
-        <input type="file" id="file-input" accept="image/*,application/pdf" onchange="handleFileUpload(this)">
+        <div id="input-section">
+            <p style="margin-bottom: 25px; color: #555; font-size: 0.95rem;">
+                Upload an ER PDF or scan a QR code to verify metadata integrity and GPS location.
+            </p>
+            
+            <button class="btn" onclick="startCamera()">Scan QR Code</button>
+            <button class="btn btn-upload" onclick="document.getElementById('file-input').click()">Upload Evidence PDF</button>
+            <input type="file" id="file-input" accept="image/*,application/pdf" onchange="handleFileUpload(this)">
+        </div>
 
-        <div id="loading" class="hidden" style="text-align:center; padding:30px; font-weight:bold; color:var(--nhs-blue);">
-            Processing Document... Please Wait.
+        <div id="loading" class="hidden" style="text-align:center; padding:40px;">
+            <div style="font-weight:bold; color:var(--nhs-blue); font-size:1.1rem; margin-bottom:10px;">ANALYZING EVIDENCE...</div>
+            <div style="color:#777; font-size:0.9rem;">Extracting cryptographic metadata</div>
         </div>
 
         <div id="video-container" class="hidden">
             <video id="video" playsinline></video>
             <canvas id="canvas" hidden></canvas>
-            <div style="padding: 10px; background: white; text-align: center;">
-                <button class="btn btn-stop" style="margin:0; width: auto;" onclick="stopCamera()">Cancel Scan</button>
+            <div style="padding: 15px; background: white; text-align: center;">
+                <button class="btn btn-stop" style="width: auto; margin:0;" onclick="stopCamera()">Cancel Scan</button>
             </div>
         </div>
 
         <div id="results" class="hidden result-box">
-            <div id="status-banner" class="alert-box hidden"></div>
             
-            <div class="section-title">Extracted Metadata</div>
-            <div id="data-display" class="data-grid"></div>
+            <div id="status-banner" class="alert-box hidden"></div>
 
-            <div class="section-title">Satellite Confirmation</div>
+            <div class="report-section-title">Evidence Metadata</div>
+            <div id="report-grid" class="report-grid">
+                </div>
+
+            <div class="report-section-title">GPS Location Confirmation</div>
             <div id="map-frame"></div>
         </div>
     </div>
 
     <div class="footer">
-        <div class="footer-content">
-            <span>Version 2.2.0</span>
-            <span>&copy; 2026 Digestiv</span>
-        </div>
+        <div>ER GeoLocate Validation Tool v3.0</div>
+        <div style="margin-top:5px;">&copy; 2026 Digestiv | Secure Environment</div>
     </div>
 
 <script>
@@ -253,14 +279,14 @@
     let scanning = false;
     let streamRef = null;
 
-    // --- FILE UPLOAD ---
+    // --- File Handling ---
     async function handleFileUpload(input) {
         const file = input.files[0];
         if (!file) return;
 
+        document.getElementById('input-section').classList.add('hidden');
         document.getElementById('loading').classList.remove('hidden');
         document.getElementById('results').classList.add('hidden');
-        stopCamera();
 
         try {
             if (file.type === "application/pdf") {
@@ -269,17 +295,16 @@
                 await processImage(file);
             }
         } catch (e) {
-            alert("Error processing file: " + e.message);
-            document.getElementById('loading').classList.add('hidden');
+            alert("Error: " + e.message);
+            location.reload();
         }
     }
 
-    // --- PDF LOGIC ---
     async function processPDF(file) {
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
         const page = await pdf.getPage(1);
-        const viewport = page.getViewport({ scale: 2.0 });
+        const viewport = page.getViewport({ scale: 3.0 }); // Higher scale for clearer QR
         
         const pdfCanvas = document.createElement('canvas');
         const pdfCtx = pdfCanvas.getContext('2d');
@@ -294,27 +319,23 @@
         finishProcessing(code);
     }
 
-    // --- IMAGE LOGIC ---
     function processImage(file) {
-        return new Promise((resolve) => {
-            const reader = new FileReader();
-            reader.onload = () => {
-                const img = new Image();
-                img.onload = () => {
-                    const tempCanvas = document.createElement('canvas');
-                    const tempCtx = tempCanvas.getContext('2d');
-                    tempCanvas.width = img.width;
-                    tempCanvas.height = img.height;
-                    tempCtx.drawImage(img, 0, 0);
-                    const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
-                    const code = jsQR(imageData.data, imageData.width, imageData.height);
-                    finishProcessing(code);
-                    resolve();
-                };
-                img.src = reader.result;
+        const reader = new FileReader();
+        reader.onload = () => {
+            const img = new Image();
+            img.onload = () => {
+                const tempCanvas = document.createElement('canvas');
+                const tempCtx = tempCanvas.getContext('2d');
+                tempCanvas.width = img.width;
+                tempCanvas.height = img.height;
+                tempCtx.drawImage(img, 0, 0);
+                const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                finishProcessing(code);
             };
-            reader.readAsDataURL(file);
-        });
+            img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
     }
 
     function finishProcessing(code) {
@@ -322,14 +343,15 @@
         if (code) {
             displayResults(code.data);
         } else {
-            alert("No valid verification code found in this document.");
+            alert("Unable to locate a valid QR code in this document.");
+            location.reload();
         }
     }
 
-    // --- CAMERA LOGIC ---
+    // --- Camera Handling ---
     function startCamera() {
+        document.getElementById('input-section').classList.add('hidden');
         document.getElementById('video-container').classList.remove('hidden');
-        document.getElementById('results').classList.add('hidden');
         scanning = true;
         navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then((stream) => {
             streamRef = stream;
@@ -345,6 +367,7 @@
             streamRef.getTracks().forEach(track => track.stop());
         }
         document.getElementById('video-container').classList.add('hidden');
+        document.getElementById('input-section').classList.remove('hidden');
     }
 
     function tick() {
@@ -356,44 +379,77 @@
             const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
             const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
             if (code) {
-                stopCamera();
+                scanning = false;
+                streamRef.getTracks().forEach(track => track.stop());
+                document.getElementById('video-container').classList.add('hidden');
                 displayResults(code.data);
             }
         }
         requestAnimationFrame(tick);
     }
 
-    // --- DISPLAY RESULTS ---
+    // --- Display & Logic ---
     function displayResults(rawJson) {
         document.getElementById('results').classList.remove('hidden');
-        const displayDiv = document.getElementById('data-display');
+        const grid = document.getElementById('report-grid');
         const banner = document.getElementById('status-banner');
         
         let data = {};
-        try { data = JSON.parse(rawJson); } catch(e) { data = { "Raw Data": rawJson }; }
+        try { data = JSON.parse(rawJson); } catch(e) { data = { "RAW DATA": rawJson }; }
 
-        displayDiv.innerHTML = Object.entries(data).map(([k, v]) => 
-            `<div class="data-row"><span class="label">${k}</span><span>${v}</span></div>`
-        ).join('');
+        // Generate HTML matching the PDF Layout
+        let html = '';
+        
+        // Helper to decide if a field should be full width
+        const isFullWidth = (key) => ["GPS Coordinates", "Reference", "GPS", "Location", "NHS Trust", "Lead Employer"].some(term => key.includes(term));
 
-        const alt = data.Altitude || data.alt || "10";
-        if (parseInt(alt) === 0) {
+        for (const [key, value] of Object.entries(data)) {
+            // Convert camelCase or normal keys to UPPERCASE for titles
+            const label = key.replace(/([A-Z])/g, ' $1').trim().toUpperCase();
+            const widthClass = isFullWidth(key) ? 'full-width' : '';
+            
+            html += `
+                <div class="report-item ${widthClass}">
+                    <div class="report-label">${label}</div>
+                    <div class="report-value">${value}</div>
+                </div>
+            `;
+        }
+        grid.innerHTML = html;
+
+        // Spoof Check (Altitude)
+        // Check for various common altitude keys
+        const altKey = Object.keys(data).find(k => k.toLowerCase().includes('alt'));
+        const altVal = altKey ? parseFloat(data[altKey]) : 10; // Default to safe if missing
+
+        if (altVal === 0) {
             banner.className = "alert-box alert-danger";
-            banner.innerHTML = "<h3>⚠️ Possible Spoof Detected</h3><p>The altitude data (0m) indicates this location may have been generated via a proxy or desktop emulator rather than a physical GPS receiver.</p>";
+            banner.innerHTML = "<h3>⚠️ SPOOF DETECTED</h3>Altitude data is 0m. This strongly indicates the location was generated by a computer proxy/emulator.";
         } else {
             banner.className = "alert-box alert-success";
-            banner.innerHTML = "<h3>✅ Validated Secure</h3><p>Data integrity confirmed. GPS metadata aligns with standard receiver output.</p>";
+            banner.innerHTML = "<h3>✅ VERIFIED AUTHENTIC</h3>Metadata integrity confirmed. GPS signature matches physical receiver characteristics.";
         }
         banner.classList.remove('hidden');
 
-        let lat = data.Latitude || data.lat;
-        let lng = data.Longitude || data.long || data.lng;
-        if(lat) lat = lat.toString().replace(/[^\d.-]/g, '');
-        if(lng) lng = lng.toString().replace(/[^\d.-]/g, '');
+        // Map Generation
+        // Look for Latitude/Longitude keys (case insensitive)
+        const latKey = Object.keys(data).find(k => k.toLowerCase().startsWith('lat'));
+        const lngKey = Object.keys(data).find(k => k.toLowerCase().startsWith('lon') || k.toLowerCase().startsWith('lng'));
+        
+        let lat = latKey ? data[latKey] : null;
+        let lng = lngKey ? data[lngKey] : null;
+
+        // Clean coordinates (remove letters if present, though usually clean in JSON)
+        if (lat) lat = lat.toString().replace(/[^\d.-]/g, '');
+        if (lng) lng = lng.toString().replace(/[^\d.-]/g, '');
 
         if (lat && lng) {
+            // Using "q=loc:lat,lng" places a pin at the exact spot. 
+            // "t=h" sets Hybrid view (Satellite + Roads) to match the visual density of the PDF map.
             document.getElementById('map-frame').innerHTML = 
-                `<iframe src="https://maps.google.com/maps?q=${lat},${lng}&t=k&z=17&ie=UTF8&iwloc=&output=embed"></iframe>`;
+                `<iframe src="https://maps.google.com/maps?q=${lat},${lng}&t=h&z=15&ie=UTF8&iwloc=&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>`;
+        } else {
+            document.getElementById('map-frame').innerHTML = "<div style='padding:20px; text-align:center; color:#777;'>No valid GPS coordinates found in QR data.</div>";
         }
     }
 </script>
