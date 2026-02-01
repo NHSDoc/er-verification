@@ -14,7 +14,6 @@
 
     <style>
         :root {
-            /* NHS & Report Color Palette */
             --nhs-blue: #005EB8;
             --nhs-white: #FFFFFF;
             --nhs-black: #231f20;
@@ -36,7 +35,7 @@
             min-height: 100vh;
         }
 
-        /* --- Header Section --- */
+        /* --- Header --- */
         .header {
             width: 100%;
             background-color: var(--nhs-white);
@@ -58,11 +57,7 @@
             letter-spacing: 0.5px;
         }
 
-        .logo {
-            height: 60px;
-            display: block;
-            margin: 0 auto;
-        }
+        .logo { height: 60px; display: block; margin: 0 auto; }
 
         /* --- Main Container --- */
         .container {
@@ -89,7 +84,6 @@
             margin-bottom: 15px;
             border-radius: 3px;
             text-transform: uppercase;
-            letter-spacing: 0.5px;
         }
         .btn:hover { background: #004080; }
         .btn-upload { background: var(--nhs-dark-grey); }
@@ -97,7 +91,7 @@
 
         #file-input, .hidden { display: none !important; }
 
-        /* --- Results Area --- */
+        /* --- Status Banners --- */
         .alert-box {
             padding: 20px;
             margin-bottom: 30px;
@@ -106,21 +100,10 @@
             box-shadow: 0 2px 5px rgba(0,0,0,0.1);
         }
         .alert-danger { border-color: var(--nhs-red); background: #fff5f5; }
-        .alert-danger h3 { color: var(--nhs-red); margin: 0 0 5px 0; font-size: 1.1rem; }
-        
         .alert-success { border-color: var(--nhs-bright-green); background: #f0fdf4; }
-        .alert-success h3 { color: var(--nhs-bright-green); margin: 0 0 5px 0; font-size: 1.1rem; }
+        .alert-header { font-weight: bold; font-size: 1.1rem; margin-bottom: 5px; }
 
-        .hash-detail {
-            font-family: 'Courier New', monospace;
-            font-size: 0.85rem;
-            color: #555;
-            margin-top: 5px;
-            background: rgba(0,0,0,0.05);
-            padding: 5px;
-            display: inline-block;
-        }
-
+        /* --- Specific Data List --- */
         .report-section-title {
             color: var(--nhs-blue);
             font-size: 1.1rem;
@@ -132,36 +115,45 @@
             margin-bottom: 20px;
         }
 
-        .report-grid {
-            display: grid;
-            grid-template-columns: 1fr 1fr;
-            gap: 20px;
+        .validation-list {
+            display: flex;
+            flex-direction: column;
+            gap: 15px;
             margin-bottom: 30px;
         }
 
-        .report-item {
+        .validation-item {
             display: flex;
-            flex-direction: column;
+            justify-content: space-between;
+            align-items: center;
             border-bottom: 1px solid #f0f0f0;
             padding-bottom: 10px;
         }
 
-        .report-label {
+        .v-label {
             color: var(--nhs-blue);
-            font-size: 0.75rem;
+            font-size: 0.85rem;
             font-weight: 700;
             text-transform: uppercase;
-            margin-bottom: 5px;
+            width: 40%;
         }
 
-        .report-value {
-            color: #000;
+        .v-value {
             font-size: 1rem;
             font-weight: 600;
-            word-break: break-word;
+            color: #000;
+            width: 50%;
+            word-break: break-all;
         }
 
-        .full-width { grid-column: 1 / -1; }
+        .v-icon {
+            width: 10%;
+            text-align: right;
+            font-size: 1.2rem;
+        }
+
+        .tick { color: var(--nhs-bright-green); }
+        .cross { color: var(--nhs-red); }
 
         iframe {
             width: 100%;
@@ -170,12 +162,12 @@
             border-radius: 4px;
         }
 
-        /* --- Footer (Updated to match Screenshot 80436.jpg) --- */
+        /* --- Footer --- */
         .footer {
             width: 100%;
             text-align: center;
             padding: 20px 0;
-            color: #999; /* Lighter grey like screenshot */
+            color: #999;
             font-size: 0.9rem;
             margin-top: auto;
             border-top: 1px solid #e0e0e0;
@@ -185,85 +177,28 @@
             align-items: center;
             gap: 8px;
         }
-
-        .footer-row {
-            display: flex;
-            align-items: center;
-            gap: 10px;
-        }
-
-        .footer-link {
-            color: var(--nhs-blue);
-            font-weight: bold;
-            text-decoration: none;
-            cursor: pointer;
-            display: flex;
-            align-items: center;
-            gap: 6px;
-        }
-        .footer-link:hover { text-decoration: underline; }
-
+        .footer-row { display: flex; align-items: center; gap: 10px; }
+        .footer-link { color: var(--nhs-blue); font-weight: bold; cursor: pointer; display: flex; align-items: center; gap: 6px; }
         .divider { color: #ccc; }
+        .reset-symbol { color: var(--nhs-blue); cursor: pointer; font-weight: bold; font-size: 1.1rem; border: none; background: none; padding: 0; margin-left: 5px; }
 
-        .reset-symbol {
-            color: var(--nhs-blue);
-            cursor: pointer;
-            font-weight: bold;
-            font-size: 1.1rem;
-            border: none;
-            background: none;
-            padding: 0;
-            margin-left: 5px;
-            transition: transform 0.3s ease;
-        }
-        .reset-symbol:hover { transform: rotate(180deg); }
-
-        /* --- Instructions Modal --- */
+        /* --- Modal --- */
         #install-modal {
-            position: fixed;
-            top: 0; left: 0; width: 100%; height: 100%;
-            background: rgba(0,0,0,0.6);
-            display: flex;
-            justify-content: center;
-            align-items: center;
-            z-index: 999;
+            position: fixed; top: 0; left: 0; width: 100%; height: 100%;
+            background: rgba(0,0,0,0.6); display: flex; justify-content: center; align-items: center; z-index: 999;
         }
-        .modal-content {
-            background: white;
-            padding: 25px;
-            border-radius: 5px;
-            max-width: 400px;
-            width: 90%;
-            box-shadow: 0 4px 20px rgba(0,0,0,0.2);
-        }
-        .modal-close {
-            float: right;
-            cursor: pointer;
-            font-size: 1.5rem;
-            font-weight: bold;
-            color: #999;
-        }
-        .instruction-step {
-            margin-bottom: 15px;
-            border-bottom: 1px solid #eee;
-            padding-bottom: 10px;
-        }
-        .instruction-step:last-child { border: none; }
-        .os-title { color: var(--nhs-blue); font-weight: bold; margin-bottom: 5px; display: block; }
+        .modal-content { background: white; padding: 25px; border-radius: 5px; max-width: 400px; width: 90%; }
+        .instruction-step { margin-bottom: 15px; border-bottom: 1px solid #eee; padding-bottom: 10px; }
 
         /* Camera */
-        #video-container {
-            position: relative;
-            background: #000;
-            overflow: hidden;
-            border-radius: 4px;
-            margin-bottom: 20px;
-        }
+        #video-container { position: relative; background: #000; overflow: hidden; border-radius: 4px; margin-bottom: 20px; }
         video { width: 100%; display: block; opacity: 0.9; }
 
         @media (max-width: 600px) {
-            .report-grid { grid-template-columns: 1fr; }
             .container { padding: 20px; width: 95%; }
+            .validation-item { flex-direction: column; align-items: flex-start; gap: 5px; }
+            .v-label, .v-value, .v-icon { width: 100%; text-align: left; }
+            .v-icon { text-align: right; position: absolute; right: 20px; }
         }
     </style>
 </head>
@@ -279,17 +214,17 @@
     <div class="container">
         <div id="input-section">
             <p style="margin-bottom: 25px; color: #555; font-size: 0.95rem; text-align: center;">
-                Upload an ER PDF or scan a QR code to verify metadata integrity and GPS location.
+                Upload an ER PDF to verify metadata integrity and GPS location.
             </p>
             
-            <button class="btn" onclick="startCamera()">Scan QR Code</button>
+            <button class="btn" onclick="startCamera()">Scan QR Code (Camera)</button>
             <button class="btn btn-upload" onclick="document.getElementById('file-input').click()">Upload Evidence PDF</button>
             <input type="file" id="file-input" accept="image/*,application/pdf" onchange="handleFileUpload(this)">
         </div>
 
         <div id="loading" class="hidden" style="text-align:center; padding:40px;">
             <div style="font-weight:bold; color:var(--nhs-blue); font-size:1.1rem; margin-bottom:10px;">ANALYZING EVIDENCE...</div>
-            <div style="color:#777; font-size:0.9rem;">Extracting cryptographic metadata</div>
+            <div style="color:#777; font-size:0.9rem;">Extracting cryptographic metadata & validating text</div>
         </div>
 
         <div id="video-container" class="hidden">
@@ -304,8 +239,10 @@
             
             <div id="status-banner" class="alert-box hidden"></div>
 
-            <div class="report-section-title">Evidence Metadata</div>
-            <div id="report-grid" class="report-grid"></div>
+            <div class="report-section-title">Verified Metadata</div>
+            
+            <div class="validation-list" id="validation-list">
+                </div>
 
             <div class="report-section-title">GPS Location Confirmation</div>
             <div id="map-frame"></div>
@@ -314,39 +251,30 @@
 
     <div id="install-modal" class="hidden">
         <div class="modal-content">
-            <span class="modal-close" onclick="toggleModal()">×</span>
+            <span style="float:right;cursor:pointer;font-size:1.5rem;" onclick="toggleModal()">×</span>
             <h3 style="color:var(--nhs-blue); margin-top:0;">Install App on Phone</h3>
-            <p style="font-size:0.9rem; color:#666;">Save this tool to your home screen for quick access.</p>
-            
             <div class="instruction-step">
-                <span class="os-title"> iOS (Safari)</span>
-                1. Tap the <strong>Share</strong> icon (square with arrow).<br>
-                2. Scroll down and tap <strong>"Add to Home Screen"</strong>.
+                <span style="color:var(--nhs-blue);font-weight:bold;display:block;"> iOS (Safari)</span>
+                1. Tap <strong>Share</strong> icon.<br>2. Tap <strong>"Add to Home Screen"</strong>.
             </div>
-
             <div class="instruction-step">
-                <span class="os-title">🤖 Android (Chrome)</span>
-                1. Tap the <strong>Menu</strong> icon (three dots).<br>
-                2. Tap <strong>"Add to Home screen"</strong> or "Install App".
+                <span style="color:var(--nhs-blue);font-weight:bold;display:block;">🤖 Android (Chrome)</span>
+                1. Tap <strong>Menu</strong> (3 dots).<br>2. Tap <strong>"Add to Home screen"</strong>.
             </div>
-            
-            <button class="btn" onclick="toggleModal()" style="padding:10px; font-size:0.9rem; margin-bottom:0;">Close</button>
+            <button class="btn" onclick="toggleModal()" style="margin:0;">Close</button>
         </div>
     </div>
 
     <div class="footer">
         <div class="footer-row">
-            <span class="footer-link" onclick="toggleModal()">
-                <svg width="14" height="20" viewBox="0 0 14 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 0H2C0.9 0 0 0.9 0 2V18C0 19.1 0.9 20 2 20H12C13.1 20 14 19.1 14 18V2C14 0.9 13.1 0 12 0ZM12 18H2V2H12V18Z"/></svg>
-                Install App on Phone
-            </span>
+            <span class="footer-link" onclick="toggleModal()">📱 Install App on Phone</span>
             <span class="divider">|</span>
             <span>© Digestiv</span>
         </div>
         <div class="footer-row">
             <span>© Digestiv</span>
             <span class="divider">|</span>
-            <span>Version 1.6</span>
+            <span>Version 1.7</span>
             <button class="reset-symbol" onclick="location.reload()" title="Reset Tool">↻</button>
         </div>
     </div>
@@ -361,15 +289,9 @@
     let streamRef = null;
 
     function toggleModal() {
-        const modal = document.getElementById('install-modal');
-        if (modal.classList.contains('hidden')) {
-            modal.classList.remove('hidden');
-        } else {
-            modal.classList.add('hidden');
-        }
+        document.getElementById('install-modal').classList.toggle('hidden');
     }
 
-    // --- File Handling ---
     async function handleFileUpload(input) {
         const file = input.files[0];
         if (!file) return;
@@ -390,17 +312,21 @@
         }
     }
 
-    // --- Updated PDF Logic: Adaptive Scaling ---
+    // --- PDF Processing (QR + Text Extraction) ---
     async function processPDF(file) {
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
         const page = await pdf.getPage(1);
         
-        // Try multiple scales to handle different PDF resolutions/renderings
-        const scales = [3.0, 2.0, 1.5, 1.0]; 
+        // 1. Extract Text Content from PDF Page for validation
+        const textContent = await page.getTextContent();
+        const pageText = textContent.items.map(item => item.str).join(" ");
+        
+        // 2. Scan for QR (Adaptive Scaling)
+        let code = null;
+        const scales = [3.0, 2.0, 1.5]; 
         
         for (let scale of scales) {
-            console.log("Attempting scan at scale: " + scale);
             const viewport = page.getViewport({ scale: scale });
             const pdfCanvas = document.createElement('canvas');
             const pdfCtx = pdfCanvas.getContext('2d');
@@ -410,16 +336,11 @@
             await page.render({ canvasContext: pdfCtx, viewport: viewport }).promise;
 
             const imageData = pdfCtx.getImageData(0, 0, pdfCanvas.width, pdfCanvas.height);
-            const code = jsQR(imageData.data, imageData.width, imageData.height);
-            
-            if (code) {
-                finishProcessing(code);
-                return; // Success, exit loop
-            }
+            code = jsQR(imageData.data, imageData.width, imageData.height);
+            if (code) break;
         }
         
-        // If loop finishes without returning, we failed
-        finishProcessing(null);
+        finishProcessing(code, pageText);
     }
 
     function processImage(file) {
@@ -434,20 +355,119 @@
                 tempCtx.drawImage(img, 0, 0);
                 const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
                 const code = jsQR(imageData.data, imageData.width, imageData.height);
-                finishProcessing(code);
+                
+                // OCR is not available for standard images in this lightweight tool, passing null text
+                finishProcessing(code, null); 
             };
             img.src = reader.result;
         };
         reader.readAsDataURL(file);
     }
 
-    function finishProcessing(code) {
+    function finishProcessing(code, pageText) {
         document.getElementById('loading').classList.add('hidden');
         if (code) {
-            displayResults(code.data);
+            displayResults(code.data, pageText);
         } else {
-            alert("Unable to locate a valid QR code in this document. Please ensure the image is clear and try again.");
+            alert("Unable to locate a valid QR code.");
             location.reload();
+        }
+    }
+
+    // --- Validation Logic ---
+    function validateField(qrValue, pageText) {
+        if (!pageText || !qrValue) return false;
+        // Normalise strings (remove extra spaces)
+        const cleanQR = qrValue.toString().replace(/\s+/g, '').toLowerCase();
+        const cleanPage = pageText.toString().replace(/\s+/g, '').toLowerCase();
+        return cleanPage.includes(cleanQR);
+    }
+
+    function displayResults(rawJson, pageText) {
+        document.getElementById('results').classList.remove('hidden');
+        const listContainer = document.getElementById('validation-list');
+        const banner = document.getElementById('status-banner');
+        
+        let data = {};
+        try { data = JSON.parse(rawJson); } catch(e) { data = { "RAW DATA": rawJson }; }
+
+        // MAPPING FIELDS
+        // 1. Lead Employer (EMP, Lead Employer, or NHS Trust)
+        let employer = data.EMP || data["Lead Employer"] || data["NHS Trust"] || "Not Found";
+        
+        // 2. Time (Time, Device Time)
+        let time = data.Time || data["Device Time"] || "Not Found";
+        
+        // 3. Location (LOC, GPS Coordinates, or combined Lat/Long)
+        let location = data.LOC || data["GPS Coordinates"];
+        if (!location && data.Latitude && data.Longitude) {
+            location = `${data.Latitude}, ${data.Longitude}`;
+        }
+        if (!location) location = "Not Found";
+
+        // VALIDATION CHECKS (Only if PDF text is available)
+        const isTimeValid = pageText ? validateField(time, pageText) : true;
+        const isLocValid = pageText ? validateField(location, pageText) : true;
+
+        // Generate HTML List
+        listContainer.innerHTML = `
+            <div class="validation-item">
+                <span class="v-label">Lead Employer</span>
+                <span class="v-value">${employer}</span>
+                <span class="v-icon"></span>
+            </div>
+
+            <div class="validation-item">
+                <span class="v-label">Time</span>
+                <span class="v-value">${time}</span>
+                <span class="v-icon">
+                    ${isTimeValid ? '<span class="tick">✔</span>' : '<span class="cross">✘</span>'}
+                </span>
+            </div>
+
+            <div class="validation-item">
+                <span class="v-label">GPS Location</span>
+                <span class="v-value">${location}</span>
+                <span class="v-icon">
+                    ${isLocValid ? '<span class="tick">✔</span>' : '<span class="cross">✘</span>'}
+                </span>
+            </div>
+        `;
+
+        // STATUS BANNER LOGIC
+        const altKey = Object.keys(data).find(k => k.toLowerCase().includes('alt'));
+        const altVal = altKey ? parseFloat(data[altKey]) : 10;
+        
+        if (altVal === 0) {
+            banner.className = "alert-box alert-danger";
+            banner.innerHTML = "<div class='alert-header'>⚠️ SPOOF DETECTED</div>Altitude data is 0m. Likely proxy/emulator.";
+        } else if (!isTimeValid || !isLocValid) {
+            banner.className = "alert-box alert-danger";
+            banner.innerHTML = "<div class='alert-header'>❌ DATA MISMATCH</div>QR Data does not match the printed PDF text.";
+        } else {
+            banner.className = "alert-box alert-success";
+            banner.innerHTML = "<div class='alert-header'>✅ VERIFIED AUTHENTIC</div>Data integrity confirmed. GPS & Time match document.";
+        }
+        banner.classList.remove('hidden');
+
+        // MAP
+        // Clean coords for map URL
+        let cleanLat = "", cleanLng = "";
+        if (location.includes(",")) {
+            const parts = location.split(",");
+            cleanLat = parts[0].trim();
+            cleanLng = parts[1].trim();
+        } else {
+            // Fallback to separate keys if LOC string wasn't perfect
+            cleanLat = data.Latitude || data.lat;
+            cleanLng = data.Longitude || data.long || data.lng;
+        }
+
+        if (cleanLat && cleanLng) {
+            document.getElementById('map-frame').innerHTML = 
+                `<iframe src="https://maps.google.com/maps?q=$${cleanLat},${cleanLng}&t=h&z=15&ie=UTF8&iwloc=&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>`;
+        } else {
+            document.getElementById('map-frame').innerHTML = "<div style='padding:20px; text-align:center; color:#777;'>No valid GPS coordinates found.</div>";
         }
     }
 
@@ -466,9 +486,7 @@
 
     function stopCamera() {
         scanning = false;
-        if (streamRef) {
-            streamRef.getTracks().forEach(track => track.stop());
-        }
+        if (streamRef) streamRef.getTracks().forEach(track => track.stop());
         document.getElementById('video-container').classList.add('hidden');
         document.getElementById('input-section').classList.remove('hidden');
     }
@@ -485,77 +503,10 @@
                 scanning = false;
                 streamRef.getTracks().forEach(track => track.stop());
                 document.getElementById('video-container').classList.add('hidden');
-                displayResults(code.data);
+                displayResults(code.data, null); // Camera scan has no PDF text to compare
             }
         }
         requestAnimationFrame(tick);
-    }
-
-    // --- Display & Logic ---
-    function displayResults(rawJson) {
-        document.getElementById('results').classList.remove('hidden');
-        const grid = document.getElementById('report-grid');
-        const banner = document.getElementById('status-banner');
-        
-        let data = {};
-        try { data = JSON.parse(rawJson); } catch(e) { data = { "RAW DATA": rawJson }; }
-
-        let html = '';
-        const isFullWidth = (key) => ["GPS Coordinates", "Reference", "GPS", "Location", "NHS Trust", "Lead Employer"].some(term => key.includes(term));
-
-        for (const [key, value] of Object.entries(data)) {
-            const label = key.replace(/([A-Z])/g, ' $1').trim().toUpperCase();
-            const widthClass = isFullWidth(key) ? 'full-width' : '';
-            html += `
-                <div class="report-item ${widthClass}">
-                    <div class="report-label">${label}</div>
-                    <div class="report-value">${value}</div>
-                </div>
-            `;
-        }
-        grid.innerHTML = html;
-
-        // --- VALIDATION ALGORITHM ---
-        
-        const altKey = Object.keys(data).find(k => k.toLowerCase().includes('alt'));
-        const altVal = altKey ? parseFloat(data[altKey]) : 10;
-        const refKey = Object.keys(data).find(k => k.toLowerCase().includes('reference'));
-        const refVal = refKey ? data[refKey] : "";
-
-        if (altVal === 0) {
-            banner.className = "alert-box alert-danger";
-            banner.innerHTML = "<h3>⚠️ SPOOF DETECTED</h3><p>Altitude data is 0m. This strongly indicates the location was generated by a computer proxy/emulator.</p>";
-        } else if (refVal.startsWith("ER-")) {
-            banner.className = "alert-box alert-success";
-            banner.innerHTML = `
-                <h3>✅ VERIFIED AUTHENTIC</h3>
-                <p>Metadata integrity confirmed. Signature matches protocol key.</p>
-                <div class="hash-detail">Protocol Key: ${HASH_KEY}</div>
-                <div class="hash-detail">Reference ID: ${refVal} [VALID]</div>
-            `;
-        } else {
-            banner.className = "alert-box alert-success";
-            banner.innerHTML = "<h3>✅ DATA VALID</h3><p>GPS data extracted successfully.</p>";
-        }
-        
-        banner.classList.remove('hidden');
-
-        // Map
-        const latKey = Object.keys(data).find(k => k.toLowerCase().startsWith('lat'));
-        const lngKey = Object.keys(data).find(k => k.toLowerCase().startsWith('lon') || k.toLowerCase().startsWith('lng'));
-        
-        let lat = latKey ? data[latKey] : null;
-        let lng = lngKey ? data[lngKey] : null;
-
-        if (lat) lat = lat.toString().replace(/[^\d.-]/g, '');
-        if (lng) lng = lng.toString().replace(/[^\d.-]/g, '');
-
-        if (lat && lng) {
-            document.getElementById('map-frame').innerHTML = 
-                `<iframe src="https://maps.google.com/maps?q=${lat},${lng}&t=h&z=15&ie=UTF8&iwloc=&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>`;
-        } else {
-            document.getElementById('map-frame').innerHTML = "<div style='padding:20px; text-align:center; color:#777;'>No valid GPS coordinates found in QR data.</div>";
-        }
     }
 </script>
 
