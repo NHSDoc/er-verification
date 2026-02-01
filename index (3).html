@@ -1,0 +1,510 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <title>ER GeoLocate</title>
+    <link rel="icon" type="image/png" href="logo.png">
+    
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/html2canvas/1.4.1/html2canvas.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script> 
+
+    <style>
+        :root { 
+            --nhs-blue: #005eb8; --nhs-grey: #f0f4f5; --nhs-text: #212b32; 
+            --success-green: #007f3b; --warning-amber: #fff9e6; --error-red: #d5281b;
+        }
+        body { font-family: 'Segoe UI', Arial, sans-serif; background-color: var(--nhs-grey); margin: 0; padding: 10px; display: flex; flex-direction: column; align-items: center; color: var(--nhs-text); }
+        .container { width: 100%; max-width: 480px; background: white; padding: 15px; border-radius: 12px; box-shadow: 0 4px 15px rgba(0,0,0,0.1); border-top: 6px solid var(--nhs-blue); position: relative; }
+        
+        .logo-header { text-align: center; margin-bottom: 12px; }
+        .app-logo { width: 100px; height: auto; margin-bottom: 2px; }
+        
+        .input-row { display: flex; gap: 8px; margin-bottom: 10px; }
+        .input-group { flex: 1; }
+        .input-group.initials { flex: 0.4; } 
+        
+        .input-group label { display: block; font-size: 0.75rem; font-weight: bold; margin-bottom: 4px; color: var(--nhs-blue); }
+        .input-group input { width: 100%; padding: 10px; border: 1px solid #ccc; border-radius: 6px; box-sizing: border-box; font-size: 0.9rem; }
+        
+        .employer-row { margin-bottom: 10px; }
+        
+        .remember-box {
+            display: flex; align-items: center; margin-top: 6px; cursor: pointer;
+            font-size: 0.75rem; color: #555; user-select: none;
+        }
+        .remember-box input {
+            margin: 0 6px 0 0; width: 16px; height: 16px; accent-color: var(--nhs-blue); vertical-align: middle; cursor: pointer;
+        } 
+
+        .btn { width: 100%; padding: 14px; border: none; border-radius: 8px; font-weight: bold; font-size: 1rem; cursor: pointer; margin-bottom: 12px; display: flex; align-items: center; justify-content: center; }
+        .btn-capture { background: var(--nhs-blue); color: white; }
+        .btn-capture:disabled { background: #ccc; cursor: not-allowed; }
+        .btn-download { background: var(--success-green); color: white; display: none; } 
+
+        .probity-box { background: var(--warning-amber); border: 2px solid #ffcc00; padding: 10px; border-radius: 8px; margin-bottom: 12px; font-size: 0.75rem; line-height: 1.2; color: #444; }
+        .probity-box label { display: flex; align-items: flex-start; gap: 8px; }
+        .probity-box input { margin-top: 2px; transform: scale(1.1); flex-shrink: 0; } 
+
+        #result-area { display: none; width: 100%; }
+        #export-container { padding: 10px; background: #fff; border: 1px solid #ddd; border-radius: 6px; width: 100%; box-sizing: border-box; }
+        
+        .pdf-header { display: flex; justify-content: space-between; align-items: flex-start; border-bottom: 2px solid var(--nhs-blue); padding-bottom: 5px; margin-bottom: 8px; }
+        .pdf-header-text h1 { color: var(--nhs-blue); font-size: 1.1rem; margin: 0; }
+        .pdf-header-text h2 { color: #666; font-size: 0.75rem; margin: 0; } 
+
+        .map-wrapper { width: 100%; border-radius: 4px; overflow: hidden; border: 1px solid #eee; margin-bottom: 8px; }
+        #map-img { width: 100%; display: block; background: #f0f0f0; min-height: 140px; }
+        
+        .data-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; margin-bottom: 8px; font-size: 0.65rem; line-height: 1.1; }
+        .data-item { overflow-wrap: break-word; word-wrap: break-word; hyphens: auto; }
+        .data-item b { color: var(--nhs-blue); display: block; font-size: 0.6rem; text-transform: uppercase; margin-bottom: 1px; }
+        
+        .full-width { grid-column: 1 / -1; border-bottom: 1px solid #eee; padding-bottom: 4px; margin-bottom: 2px; }
+        .unverified-text { color: var(--error-red); font-weight: bold; }
+        
+        .qr-area { text-align: center; border-top: 1px dashed #ccc; padding-top: 8px; margin-top: 4px; }
+        #qrcode { display: inline-block; padding: 4px; border: 1px solid #eee; background: #fff; }
+        
+        #facility-section { font-size: 0.65rem; color: #555; margin-top: 4px; border-top: 1px solid #eee; padding-top: 4px; display: none; }
+        
+        /* Guide Styles */
+        details { margin-top: 10px; margin-bottom: 10px; border: 1px solid #eee; border-radius: 8px; overflow: hidden; }
+        summary { 
+            background-color: #f8f9fa; padding: 10px; cursor: pointer; font-size: 0.85rem; 
+            font-weight: bold; color: var(--nhs-blue); text-align: center; list-style: none; user-select: none;
+        }
+        summary:hover { background-color: #eef3f7; }
+        summary::-webkit-details-marker { display: none; }
+        .guide-content { padding: 0; text-align: center; border-top: 1px solid #eee; }
+        .guide-img { width: 100%; height: auto; display: block; } 
+
+        /* Footer & Modal Styles */
+        .footer-links { text-align: center; margin-top: 15px; font-size: 0.75rem; color: #666; }
+        .footer-links a { color: var(--nhs-blue); text-decoration: none; font-weight: bold; margin: 0 5px; cursor: pointer; }
+        
+        #install-modal { display: none; position: fixed; top: 0; left: 0; width: 100%; height: 100%; background: rgba(0,0,0,0.5); z-index: 9999; align-items: center; justify-content: center; }
+        .modal-content { background: white; padding: 20px; border-radius: 12px; width: 85%; max-width: 320px; box-shadow: 0 5px 15px rgba(0,0,0,0.3); }
+        .modal-content h3 { color: var(--nhs-blue); margin-top: 0; }
+        .modal-close { display: block; width: 100%; padding: 10px; margin-top: 15px; background: #eee; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; }
+        
+        .copyright { text-align: center; color: #999; font-size: 0.65rem; margin: 10px 0; }
+        .update-link { color: var(--nhs-blue); font-weight: bold; cursor: pointer; text-decoration: none; margin-left: 5px; font-size: 0.8rem; }
+    </style>
+</head>
+<body> 
+
+<div class="container">
+    <div class="logo-header">
+        <img src="logo.png" alt="ER GeoLocate Logo" class="app-logo">
+        <h1 style="color:var(--nhs-blue); font-size:1.4rem; margin:0;">ER GeoLocate</h1>
+    </div> 
+
+    <div class="input-row">
+        <div class="input-group initials">
+            <label for="userInitials">Initials:</label>
+            <input type="text" id="userInitials" placeholder="--" maxlength="2" style="text-transform: uppercase;">
+        </div>
+        <div class="input-group">
+            <label for="wardDept">Speciality:</label>
+            <input type="text" id="wardDept" placeholder="e.g. Cardiology" maxlength="30">
+        </div>
+    </div> 
+
+    <div class="input-group employer-row">
+        <label for="leadEmployer">Lead NHS Employer:</label>
+        <input list="nhsTrusts" id="leadEmployer" placeholder="Search Trust or Board...">
+        <datalist id="nhsTrusts"></datalist>
+        <label class="remember-box">
+            <input type="checkbox" id="rememberEmp"> Remember my employer
+        </label>
+    </div> 
+
+    <button id="capBtn" class="btn btn-capture" onclick="captureData()" disabled>📍 Verify & Capture Location</button>
+    
+    <div class="probity-box">
+        <label>
+            <input type="checkbox" id="probityCheck" onchange="toggleButton()">
+            <span><b>Probity:</b> I certify the accurate recording of my clinical hours outside my rostered schedule. I recognise my obligations under GMC Good Clinical Practice in doing so.</span>
+        </label>
+    </div> 
+
+    <div id="status" style="text-align:center; font-size: 0.75rem; color: #666; margin-bottom: 8px;">Accept declaration to begin.</div> 
+
+    <details id="guide-details">
+        <summary>ℹ️ Guide: When & Why to Report (Tap to view)</summary>
+        <div class="guide-content">
+            <img src="guide.jpg" alt="How to use ER GeoLocate" class="guide-img">
+        </div>
+    </details> 
+
+    <div id="result-area">
+        <div id="export-container">
+            <div class="pdf-header">
+                <div class="pdf-header-text">
+                    <h1>ER GeoLocate</h1>
+                    <h2>Evidence ID: <span id="pdf-initials"></span></h2>
+                </div>
+                <img src="logo.png" style="width:70px; height:auto;">
+            </div>
+            
+            <div class="map-wrapper">
+                <img id="map-img" crossorigin="anonymous" src="">
+            </div>
+            
+            <div class="data-grid">
+                <div class="data-item full-width"><b>Lead Employer</b><span id="employer-display"></span></div>
+                
+                <div class="data-item"><b>Clinician Initials</b><span id="display-initials"></span></div>
+                <div class="data-item"><b>Speciality</b><span id="dept-display"></span></div>
+                
+                <div class="data-item"><b>UK Network Verification Time</b><span id="ind-time"></span></div>
+                <div class="data-item"><b>Device Time</b><span id="dev-time"></span></div>
+                
+                <div class="data-item"><b>GPS Coordinates</b><span id="coords-display"></span></div>
+                <div class="data-item"><b>Reference</b><span id="session-display"></span></div>
+            </div> 
+
+            <div id="facility-section">
+                <b>Nearest Verified Facility:</b> <span id="facility-display"></span>
+            </div> 
+
+            <div class="qr-area">
+                <div id="qrcode"></div>
+            </div>
+        </div>
+        <button id="dlBtn" class="btn btn-download" onclick="downloadPDF()">Download ER GeoLocate Evidence</button>
+    </div> 
+
+    <div class="footer-links">
+        <a href="#" onclick="openInstallHelp(); return false;">📲 Install App on Phone</a> | <span style="color:#999">© Digestiv</span>
+    </div>
+</div> 
+
+<div id="install-modal">
+    <div class="modal-content">
+        <h3>Install App on Phone</h3>
+        <p style="font-size: 0.9rem; color: #444; margin-bottom: 10px;">For quicker access, add this tool to your home screen:</p>
+        <div style="margin-bottom: 15px;">
+            <b style="color:#000;">🤖 Android (Chrome)</b><br>
+            <span style="font-size:0.85rem; color:#666;">Tap the <b>three dots (⋮)</b> top right ➝ Select <b>"Add to Home screen"</b>.</span>
+        </div>
+        <div>
+            <b style="color:#000;">🍎 iOS (Safari)</b><br>
+            <span style="font-size:0.85rem; color:#666;">Tap the <b>Share icon (⏍)</b> bottom center ➝ Scroll down and select <b>"Add to Home Screen"</b>.</span>
+        </div>
+        <button class="modal-close" onclick="closeInstallHelp()">Close</button>
+    </div>
+</div> 
+
+<div class="copyright">
+    © Digestiv | Version 1.24 
+    <a class="update-link" onclick="forceUpdate()" title="Force Refresh">↻</a>
+</div>
+
+<script>
+    const API_KEY = 'AIzaSyAS4xNopFGKYRQwssv2cfkFO-fCiHinYT8';
+    
+    function forceUpdate() {
+        if(confirm("Download latest version from server?")) {
+            var url = window.location.href.split('?')[0];
+            window.location.href = url + '?t=' + new Date().getTime();
+        }
+    }
+
+    // FULL UK TRUST LIST
+    const trusts = [
+        "Barts Health NHS Trust", "Chelsea and Westminster Hospital NHS Foundation Trust", "Croydon Health Services NHS Trust",
+        "Epsom and St Helier University Hospitals NHS Trust", "Great Ormond Street Hospital for Children NHS Foundation Trust",
+        "Guy's and St Thomas' NHS Foundation Trust", "Hillingdon Hospitals NHS Foundation Trust", "Homerton Healthcare NHS Foundation Trust",
+        "Imperial College Healthcare NHS Trust", "King's College Hospital NHS Foundation Trust", "Kingston Hospital NHS Foundation Trust",
+        "Lewisham and Greenwich NHS Trust", "London Ambulance Service NHS Trust", "London North West University Healthcare NHS Trust",
+        "Moorfields Eye Hospital NHS Foundation Trust", "North East London NHS Foundation Trust", "North Middlesex University Hospital NHS Trust",
+        "Royal Brompton and Harefield NHS Foundation Trust", "Royal Free London NHS Foundation Trust", "Royal National Orthopaedic Hospital NHS Trust",
+        "St George's University Hospitals NHS Foundation Trust", "The Hillingdon Hospitals NHS Foundation Trust", "The Royal Marsden NHS Foundation Trust",
+        "University College London Hospitals NHS Foundation Trust", "Whittington Health NHS Trust",
+        "Bedfordshire Hospitals NHS Foundation Trust", "Cambridge University Hospitals NHS Foundation Trust", "Cambridgeshire and Peterborough NHS Foundation Trust",
+        "East and North Hertfordshire NHS Trust", "East of England Ambulance Service NHS Trust", "East Suffolk and North Essex NHS Foundation Trust",
+        "Essex Partnership University NHS Foundation Trust", "Hertfordshire Partnership University NHS Foundation Trust", "James Paget University Hospitals NHS Foundation Trust",
+        "Mid and South Essex NHS Foundation Trust", "Norfolk and Norwich University Hospitals NHS Foundation Trust", "Norfolk and Suffolk NHS Foundation Trust",
+        "North West Anglia NHS Foundation Trust", "Queen Elizabeth Hospital King's Lynn NHS Foundation Trust", "Royal Papworth Hospital NHS Foundation Trust",
+        "West Hertfordshire Teaching Hospitals NHS Trust", "West Suffolk NHS Foundation Trust",
+        "Birmingham and Solihull Mental Health NHS Foundation Trust", "Birmingham Community Healthcare NHS Foundation Trust", "Birmingham Women's and Children's NHS Foundation Trust",
+        "Chesterfield Royal Hospital NHS Foundation Trust", "Coventry and Warwickshire Partnership NHS Trust", "Derbyshire Healthcare NHS Foundation Trust",
+        "East Midlands Ambulance Service NHS Trust", "George Eliot Hospital NHS Trust", "Herefordshire and Worcestershire Health and Care NHS Trust",
+        "Kettering General Hospital NHS Foundation Trust", "Leicestershire Partnership NHS Trust", "Lincolnshire Community Health Services NHS Trust",
+        "Lincolnshire Partnership NHS Foundation Trust", "Midlands Partnership NHS Foundation Trust", "Northampton General Hospital NHS Trust",
+        "Northamptonshire Healthcare NHS Foundation Trust", "Nottingham University Hospitals NHS Trust", "Nottinghamshire Healthcare NHS Foundation Trust",
+        "Sandwell and West Birmingham Hospitals NHS Trust", "Sherwood Forest Hospitals NHS Foundation Trust", "Shrewsbury and Telford Hospital NHS Trust",
+        "South Warwickshire NHS Foundation Trust", "The Dudley Group NHS Foundation Trust", "The Robert Jones and Agnes Hunt Orthopaedic Hospital NHS Foundation Trust",
+        "The Royal Orthopaedic Hospital NHS Foundation Trust", "The Royal Wolverhampton NHS Trust", "United Lincolnshire Hospitals NHS Trust",
+        "University Hospitals Birmingham NHS Foundation Trust", "University Hospitals Coventry and Warwickshire NHS Trust", "University Hospitals of Derby and Burton NHS Foundation Trust",
+        "University Hospitals of Leicester NHS Trust", "University Hospitals of North Midlands NHS Trust", "Walsall Healthcare NHS Trust",
+        "West Midlands Ambulance Service University NHS Foundation Trust", "Worcestershire Acute Hospitals NHS Trust", "Wye Valley NHS Trust",
+        "Barnsley Hospital NHS Foundation Trust", "Bradford District Care NHS Foundation Trust", "Bradford Teaching Hospitals NHS Foundation Trust",
+        "Calderdale and Huddersfield NHS Foundation Trust", "County Durham and Darlington NHS Foundation Trust", "Cumbria, Northumberland, Tyne and Wear NHS Foundation Trust",
+        "Doncaster and Bassetlaw Teaching Hospitals NHS Foundation Trust", "Gateshead Health NHS Foundation Trust", "Harrogate and District NHS Foundation Trust",
+        "Humber Teaching NHS Foundation Trust", "Leeds and York Partnership NHS Foundation Trust", "Leeds Teaching Hospitals NHS Trust",
+        "Mid Yorkshire Hospitals NHS Trust", "North East Ambulance Service NHS Foundation Trust", "North Tees and Hartlepool NHS Foundation Trust",
+        "North Yorkshire Service NHS Trust", "Northern Lincolnshire and Goole NHS Foundation Trust", "Northumbria Healthcare NHS Foundation Trust",
+        "Rotherham Doncaster and South Humber NHS Foundation Trust", "Sheffield Children's NHS Foundation Trust", "Sheffield Health and Social Care NHS Foundation Trust",
+        "Sheffield Teaching Hospitals NHS Foundation Trust", "South Tees Hospitals NHS Foundation Trust", "South Tyneside and Sunderland NHS Foundation Trust",
+        "South West Yorkshire Partnership NHS Foundation Trust", "Tees, Esk and Wear Valleys NHS Foundation Trust", "The Newcastle Upon Tyne Hospitals NHS Foundation Trust",
+        "The Rotherham NHS Foundation Trust", "York and Scarborough Teaching Hospitals NHS Foundation Trust", "Yorkshire Ambulance Service NHS Trust",
+        "Alder Hey Children's NHS Foundation Trust", "Blackpool Teaching Hospitals NHS Foundation Trust", "Bolton NHS Foundation Trust",
+        "Bridgewater Community Healthcare NHS Foundation Trust", "Cheshire and Wirral Partnership NHS Foundation Trust", "Countess of Chester Hospital NHS Foundation Trust",
+        "East Cheshire NHS Trust", "East Lancashire Hospitals NHS Trust", "Greater Manchester Mental Health NHS Foundation Trust",
+        "Lancashire and South Cumbria NHS Foundation Trust", "Lancashire Teaching Hospitals NHS Foundation Trust", "Liverpool Heart and Chest Hospital NHS Foundation Trust",
+        "Liverpool University Hospitals NHS Foundation Trust", "Liverpool Women's NHS Foundation Trust", "Manchester University NHS Foundation Trust",
+        "Mersey Care NHS Foundation Trust", "Mid Cheshire Hospitals NHS Foundation Trust", "North West Ambulance Service NHS Trust",
+        "Northern Care Alliance NHS Foundation Trust", "Pennine Care NHS Foundation Trust", "St Helens and Knowsley Teaching Hospitals NHS Trust",
+        "Stockport NHS Foundation Trust", "Tameside and Glossop Integrated Care NHS Foundation Trust", "The Christie NHS Foundation Trust",
+        "The Clatterbridge Cancer Centre NHS Foundation Trust", "The Walton Centre NHS Foundation Trust", "University Hospitals of Morecambe Bay NHS Foundation Trust",
+        "Warrington and Halton Teaching Hospitals NHS Foundation Trust", "Wirral Community Health and Care NHS Foundation Trust", "Wirral University Teaching Hospital NHS Foundation Trust",
+        "Wrightington, Wigan and Leigh NHS Foundation Trust",
+        "Ashford and St Peter's Hospitals NHS Foundation Trust", "Berkshire Healthcare NHS Foundation Trust", "Buckinghamshire Healthcare NHS Trust",
+        "Dartford and Gravesham NHS Trust", "East Kent Hospitals University NHS Foundation Trust", "East Sussex Healthcare NHS Trust",
+        "Frimley Health NHS Foundation Trust", "Hampshire Hospitals NHS Foundation Trust", "Isle of Wight NHS Trust",
+        "Kent and Medway NHS and Social Care Partnership Trust", "Kent Community Health NHS Foundation Trust", "Maidstone and Tunbridge Wells NHS Trust",
+        "Medway NHS Foundation Trust", "Milton Keynes University Hospital NHS Foundation Trust", "Oxford Health NHS Foundation Trust",
+        "Oxford University Hospitals NHS Foundation Trust", "Portsmouth Hospitals University NHS Trust", "Queen Victoria Hospital NHS Foundation Trust",
+        "Royal Berkshire NHS Foundation Trust", "Royal Surrey NHS Foundation Trust", "South Central Ambulance Service NHS Foundation Trust",
+        "South East Coast Ambulance Service NHS Foundation Trust", "Southern Health NHS Foundation Trust", "Surrey and Borders Partnership NHS Foundation Trust",
+        "Sussex Community NHS Foundation Trust", "Sussex Partnership NHS Foundation Trust", "University Hospital Southampton NHS Foundation Trust",
+        "Western Sussex Hospitals NHS Foundation Trust",
+        "Avon and Wiltshire Mental Health Partnership NHS Trust", "Cornwall Partnership NHS Foundation Trust", "Devon Partnership NHS Trust",
+        "Dorset County Hospital NHS Foundation Trust", "Dorset HealthCare University NHS Foundation Trust", "Gloucestershire Health and Care NHS Foundation Trust",
+        "Gloucestershire Hospitals NHS Foundation Trust", "Great Western Hospitals NHS Foundation Trust", "North Bristol NHS Trust",
+        "Northern Devon Healthcare NHS Trust", "Royal Cornwall Hospitals NHS Trust", "Royal Devon University Healthcare NHS Foundation Trust",
+        "Royal United Hospitals Bath NHS Foundation Trust", "Salisbury NHS Foundation Trust", "Somerset NHS Foundation Trust",
+        "South Western Ambulance Service NHS Foundation Trust", "Torbay and South Devon NHS Foundation Trust", "University Hospitals Bristol and Weston NHS Foundation Trust",
+        "University Hospitals Dorset NHS Foundation Trust", "University Hospitals Plymouth NHS Trust", "Wiltshire Health and Care",
+        "Yeovil District Hospital NHS Foundation Trust",
+        "NHS Ayrshire and Arran", "NHS Borders", "NHS Dumfries and Galloway", "NHS Fife", "NHS Forth Valley", "NHS Grampian",
+        "NHS Greater Glasgow and Clyde", "NHS Highland", "NHS Lanarkshire", "NHS Lothian", "NHS Orkney", "NHS Shetland",
+        "NHS Tayside", "NHS Western Isles", "Scottish Ambulance Service", "The State Hospital", "Golden Jubilee National Hospital",
+        "Aneurin Bevan University Health Board", "Betsi Cadwaladr University Health Board", "Cardiff and Vale University Health Board",
+        "Cwm Taf Morgannwg University Health Board", "Hywel Dda University Health Board", "Powys Teaching Health Board",
+        "Swansea Bay University Health Board", "Velindre University NHS Trust", "Welsh Ambulance Services NHS Trust",
+        "Belfast Health and Social Care Trust", "Northern Health and Social Care Trust", "South Eastern Health and Social Care Trust",
+        "Southern Health and Social Care Trust", "Western Health and Social Care Trust", "Northern Ireland Ambulance Service"
+    ]; 
+
+    const datalist = document.getElementById('nhsTrusts');
+    trusts.sort().forEach(t => {
+        let option = document.createElement('option');
+        option.value = t;
+        datalist.appendChild(option);
+    }); 
+
+    window.onload = function() {
+        const savedEmp = localStorage.getItem('er_employer');
+        if (savedEmp) {
+            document.getElementById('leadEmployer').value = savedEmp;
+            document.getElementById('rememberEmp').checked = true;
+        }
+    }; 
+
+    const specialties = ["Gastroenterology", "Cardiology", "Acute Medicine", "General Surgery", "Paediatrics", "Emergency Medicine", "Anaesthetics", "Trauma & Orthopaedics", "Renal Medicine", "Maternity", "Geratology", "Haematology"]; 
+
+    function updatePlaceholders() {
+        const initInput = document.getElementById('userInitials');
+        const specInput = document.getElementById('wardDept');
+        if (document.activeElement !== initInput && !initInput.value) {
+            const letters = "ABCDEFGHIJKLMNOPQRSTUVWXYZ";
+            initInput.placeholder = letters.charAt(Math.floor(Math.random() * 26)) + letters.charAt(Math.floor(Math.random() * 26));
+        }
+        if (document.activeElement !== specInput && !specInput.value) {
+            specInput.placeholder = specialties[Math.floor(Math.random() * specialties.length)];
+        }
+    }
+    setInterval(updatePlaceholders, 3000);
+    updatePlaceholders(); 
+
+    function toggleButton() {
+        document.getElementById('capBtn').disabled = !document.getElementById('probityCheck').checked;
+    } 
+
+    function abbreviateName(str) {
+        if (!str) return "NA";
+        return str.match(/\b(\w)/g).join('').toUpperCase();
+    } 
+
+    function openInstallHelp() { document.getElementById('install-modal').style.display = 'flex'; }
+    function closeInstallHelp() { document.getElementById('install-modal').style.display = 'none'; } 
+
+    // --- TIME FUNCTION WITH TEXT PARSING FIX ---
+    async function getStrictUKTime() {
+        // Quad-Redundancy Logic
+        const apiEndpoints = [
+            'https://worldtimeapi.org/api/timezone/Europe/London',
+            'https://timeapi.io/api/Time/current/zone?timeZone=Europe/London'
+        ];
+        
+        for (let url of apiEndpoints) {
+            try {
+                // Kept 1.17 timeout logic
+                const res = await fetch(url, { signal: AbortSignal.timeout(3500) });
+                const data = await res.json();
+                // Force UK output to avoid Belize time calc
+                if (data.datetime || data.dateTime) return { time: new Date(data.datetime || data.dateTime).toLocaleString('en-GB', {timeZone: 'Europe/London'}), verified: true };
+            } catch (e) {}
+        }
+        
+        try {
+            // FIX: Manual Parse for TimeZoneDB
+            const res = await fetch('https://api.timezonedb.com/v2.1/get-time-zone?key=L2M0Z8R7X9G1&format=json&by=zone&zone=Europe/London', { signal: AbortSignal.timeout(3500) });
+            const data = await res.json();
+            if (data.formatted) {
+                // data.formatted comes as "2026-01-31 22:51:20"
+                // Split string manually so phone doesn't do timezone math
+                const parts = data.formatted.split(' ');
+                const dateParts = parts[0].split('-');
+                const timeParts = parts[1];
+                // Return "31/01/2026, 22:51:20"
+                return { time: `${dateParts[2]}/${dateParts[1]}/${dateParts[0]}, ${timeParts}`, verified: true };
+            }
+        } catch(e) {}
+        
+        try {
+            const res = await fetch('https://www.google.com', { method: 'HEAD', mode: 'no-cors' });
+            // Note: Google check retained from 1.17 as requested, but might fail silently in no-cors
+        } catch (e) {}
+        
+        // Fallback
+        return { time: new Date().toLocaleString('en-GB', {timeZone: 'Europe/London'}), verified: false };
+    } 
+
+    // --- RESTORED: CRYPTO REFERENCE ---
+    async function generateSecureReference(timeStr, lat, lon) {
+        const secret = "ER-GE0L0CATE"; 
+        const raw = `${timeStr}${lat.toFixed(5)}${lon.toFixed(5)}${secret}`;
+        const msgBuffer = new TextEncoder().encode(raw);
+        const hashBuffer = await crypto.subtle.digest('SHA-256', msgBuffer);
+        const hashArray = Array.from(new Uint8Array(hashBuffer));
+        const hashHex = hashArray.map(b => b.toString(16).padStart(2, '0')).join('');
+        return 'ER-' + hashHex.substring(0, 8).toUpperCase();
+    }
+
+    async function captureData() {
+        const status = document.getElementById('status');
+        const capBtn = document.getElementById('capBtn');
+        const initials = document.getElementById('userInitials').value.toUpperCase() || "N/A";
+        const deptName = document.getElementById('wardDept').value || "Not Specified";
+        const employer = document.getElementById('leadEmployer').value || "Not Specified";
+        
+        document.getElementById('guide-details').style.display = 'none';
+
+        if (document.getElementById('rememberEmp').checked) {
+            localStorage.setItem('er_employer', employer);
+        } else {
+            localStorage.removeItem('er_employer');
+        }
+        
+        capBtn.disabled = true;
+        status.innerText = "Syncing verification data..."; 
+
+        const timeObj = await getStrictUKTime();
+        
+        navigator.geolocation.getCurrentPosition(async (pos) => {
+            const { latitude: lat, longitude: lon, altitude: alt } = pos.coords;
+            const empCode = abbreviateName(employer); 
+            
+            // --- RESTORED: Reference Generation ---
+            const sid = await generateSecureReference(timeObj.time, lat, lon);
+            
+            const timeEl = document.getElementById('ind-time');
+            if (timeObj.verified) {
+                timeEl.innerText = timeObj.time;
+            } else {
+                timeEl.innerHTML = `${timeObj.time} <span class="unverified-text">(Unverified, device based)</span>`;
+            } 
+
+            const facility = await getNearestFacility(lat, lon);
+            const facSection = document.getElementById('facility-section');
+            if (facility && facility.dist <= 0.2) {
+                document.getElementById('facility-display').innerText = `${facility.name} (${(facility.dist * 1000).toFixed(0)}m)`;
+                facSection.style.display = "block";
+            } else {
+                facSection.style.display = "none";
+            } 
+
+            document.getElementById('display-initials').innerText = initials;
+            document.getElementById('pdf-initials').innerText = initials;
+            document.getElementById('employer-display').innerText = employer;
+            document.getElementById('dept-display').innerText = deptName;
+            document.getElementById('dev-time').innerText = new Date().toLocaleString('en-GB');
+            document.getElementById('coords-display').innerText = `${lat.toFixed(5)}, ${lon.toFixed(5)}`;
+            document.getElementById('session-display').innerText = sid;
+            
+            document.getElementById('map-img').src = `https://maps.googleapis.com/maps/api/staticmap?center=${lat},${lon}&zoom=15&size=600x200&markers=color:blue%7Clabel:H%7C${lat},${lon}&key=${API_KEY}`;
+            
+            // --- RESTORED: ALT/LOC in QR ONLY ---
+            const altValue = alt ? Math.round(alt) : 0;
+            const qrDiv = document.getElementById('qrcode');
+            qrDiv.innerHTML = ""; 
+            new QRCode(qrDiv, { 
+                text: `REF:${sid}|EMP:${empCode}|USER:${initials}|TIME:${timeObj.time}|V:${timeObj.verified ? 'Y':'N'}|LOC:${lat.toFixed(5)},${lon.toFixed(5)}|ALT:${altValue}`, 
+                width: 130, height: 130, correctLevel: QRCode.CorrectLevel.L
+            }); 
+
+            document.getElementById('result-area').style.display = 'block';
+            document.getElementById('dlBtn').style.display = 'flex';
+            status.innerText = "Evidence Secured.";
+            capBtn.disabled = false;
+        }, (err) => { 
+            status.innerText = "GPS Error."; 
+            capBtn.disabled = false; 
+        });
+    } 
+
+    async function getNearestFacility(lat, lon) {
+        try {
+            const res = await fetch(`https://maps.googleapis.com/maps/api/place/nearbysearch/json?location=${lat},${lon}&rankby=distance&type=hospital|health|doctor&key=${API_KEY}`);
+            const data = await res.json();
+            if (data.status === "OK" && data.results.length > 0) {
+                const f = data.results[0];
+                const d = calculateDistance(lat, lon, f.geometry.location.lat, f.geometry.location.lng);
+                return { name: f.name, dist: d };
+            }
+            return null;
+        } catch(e) { return null; }
+    } 
+
+    function calculateDistance(lat1, lon1, lat2, lon2) {
+        const R = 6371; 
+        const dLat = (lat2 - lat1) * Math.PI / 180;
+        const dLon = (lon2 - lon1) * Math.PI / 180;
+        const a = Math.sin(dLat/2) * Math.sin(dLat/2) + Math.cos(lat1 * Math.PI / 180) * Math.cos(lat2 * Math.PI / 180) * Math.sin(dLon/2) * Math.sin(dLon/2);
+        return R * (2 * Math.atan2(Math.sqrt(a), Math.sqrt(1-a)));
+    } 
+
+    function downloadPDF() {
+        const status = document.getElementById('status');
+        const dlBtn = document.getElementById('dlBtn');
+        status.innerText = "Building PDF...";
+        dlBtn.disabled = true; 
+
+        // --- RESTORED: PDF FILENAME LOGIC ---
+        const d = new Date();
+        const y = d.getFullYear().toString().substr(-2);
+        const m = (d.getMonth() + 1).toString().padStart(2, '0');
+        const day = d.getDate().toString().padStart(2, '0');
+        const refId = document.getElementById('session-display').innerText;
+        
+        const filename = `${y}-${m}-${day}-${refId}.pdf`;
+
+        html2canvas(document.getElementById('export-container'), { 
+            useCORS: true, scale: 2.2 
+        }).then(canvas => {
+            const pdf = new jspdf.jsPDF('p', 'mm', 'a5');
+            pdf.addImage(canvas.toDataURL('image/png'), 'PNG', 10, 8, 128, 0);
+            pdf.save(filename);
+            status.innerText = "Downloaded.";
+            dlBtn.disabled = false;
+        });
+    }
+</script>
+</body>
+</html>
