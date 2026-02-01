@@ -1,0 +1,179 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>ER GeoLocate Verification Tool</title>
+    <style>
+        body { font-family: 'Courier New', monospace; background-color: #1a1a1a; color: #e0e0e0; margin: 0; padding: 20px; }
+        h1 { color: #ffcc00; text-align: center; border-bottom: 2px solid #ffcc00; padding-bottom: 10px; }
+        .container { max-width: 800px; margin: 0 auto; background: #2d2d2d; padding: 20px; border-radius: 8px; border: 1px solid #444; }
+        .btn { display: block; width: 100%; padding: 15px; margin: 10px 0; background: #ffcc00; color: #000; font-weight: bold; border: none; cursor: pointer; font-size: 16px; }
+        .btn:hover { background: #e6b800; }
+        .hidden { display: none; }
+        .data-box { background: #000; border: 1px solid #ffcc00; padding: 15px; margin-top: 20px; word-wrap: break-word; }
+        .alert { background: #b71c1c; color: white; padding: 15px; margin-top: 20px; font-weight: bold; text-align: center; border: 2px solid #ff0000; animation: blink 2s infinite; }
+        .verified { background: #1b5e20; color: white; padding: 15px; margin-top: 20px; font-weight: bold; text-align: center; border: 2px solid #00ff00; }
+        iframe { width: 100%; height: 300px; border: 0; margin-top: 15px; }
+        
+        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
+    </style>
+    <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+</head>
+<body>
+
+<div class="container">
+    <h1>📍 ER GeoLocate Verification Tool</h1>
+    <p style="text-align:center;">Secure Verification Environment</p>
+
+    <button class="btn" onclick="showSection('scan')">📸 Scan QR Code</button>
+    <button class="btn" onclick="showSection('upload')">📂 Upload PDF / Image</button>
+
+    <div id="scan-section" class="hidden">
+        <h3 style="color:#ffcc00">Live Camera Scan</h3>
+        <canvas id="canvas" hidden></canvas>
+        <div id="loadingMessage">🎥 Waiting for video permission...</div>
+    </div>
+
+    <div id="upload-section" class="hidden">
+        <h3 style="color:#ffcc00">Upload Verification File</h3>
+        <input type="file" id="file-input" accept="image/*" class="btn" style="background:#444; color:white;">
+    </div>
+
+    <div id="results" class="hidden">
+        <h3 style="color:#ffcc00">Verification Report</h3>
+        
+        <div id="spoof-alert" class="hidden alert">⚠️ ALERT: POSSIBLE GPS/IP SPOOF DETECTED<br><span style="font-size:0.8em; font-weight:normal;">Altitude matches 0m (proxy/emulator signature)</span></div>
+        <div id="verified-badge" class="hidden verified">✅ DATA VERIFIED SECURE</div>
+
+        <div class="data-box" id="extracted-data"></div>
+        
+        <h4 style="color:#ffcc00">Location Visualizer</h4>
+        <div id="map-container"></div>
+    </div>
+</div>
+
+<script>
+    const canvas = document.getElementById("canvas");
+    const ctx = canvas.getContext("2d");
+    let scanning = false;
+
+    function showSection(id) {
+        document.getElementById('scan-section').classList.add('hidden');
+        document.getElementById('upload-section').classList.add('hidden');
+        document.getElementById(id + '-section').classList.remove('hidden');
+        
+        if(id === 'scan') startScan();
+        else stopScan();
+    }
+
+    // --- QR Processing Logic ---
+    function processQRData(codeData) {
+        stopScan();
+        document.getElementById('results').classList.remove('hidden');
+        
+        // 1. Attempt to Parse JSON
+        let data = {};
+        try {
+            data = JSON.parse(codeData);
+        } catch (e) {
+            data = { "Raw Data": codeData };
+        }
+
+        // 2. Render Data Fields
+        let html = "<ul>";
+        for (const [key, value] of Object.entries(data)) {
+            html += `<li><strong style="color:#ffcc00">${key}:</strong> ${value}</li>`;
+        }
+        html += "</ul>";
+        document.getElementById('extracted-data').innerHTML = html;
+
+        // 3. Spoof Detection (Altitude = 0)
+        // Checks for 'Altitude', 'alt', or 'Elevation' keys
+        const alt = data.Altitude || data.alt || data.elevation || "10"; // Default to safe if missing
+        if (parseInt(alt) === 0) {
+            document.getElementById('spoof-alert').classList.remove('hidden');
+            document.getElementById('verified-badge').classList.add('hidden');
+        } else {
+            document.getElementById('spoof-alert').classList.add('hidden');
+            document.getElementById('verified-badge').classList.remove('hidden');
+        }
+
+        // 4. Map Integration
+        // extract lat/long from various common key names
+        let lat = data.Latitude || data.lat;
+        let lng = data.Longitude || data.long || data.lng;
+        
+        if (lat && lng) {
+            const mapHtml = `<iframe 
+                frameborder="0" 
+                src="https://maps.google.com/maps?q=${lat},${lng}&hl=en&z=14&output=embed">
+            </iframe>`;
+            document.getElementById('map-container').innerHTML = mapHtml;
+        }
+    }
+
+    // --- Image Upload Logic ---
+    document.getElementById('file-input').addEventListener('change', e => {
+        const file = e.target.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = function(){
+            const img = new Image();
+            img.onload = function(){
+                const canvas = document.createElement('canvas');
+                const context = canvas.getContext('2d');
+                canvas.width = img.width;
+                canvas.height = img.height;
+                context.drawImage(img, 0, 0, img.width, img.height);
+                const imageData = context.getImageData(0, 0, img.width, img.height);
+                const code = jsQR(imageData.data, imageData.width, imageData.height);
+                if (code) {
+                    processQRData(code.data);
+                } else {
+                    alert("No QR code found in this image.");
+                }
+            };
+            img.src = reader.result;
+        };
+        reader.readAsDataURL(file);
+    });
+
+    // --- Camera Scan Logic ---
+    function startScan() {
+        scanning = true;
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
+            const video = document.createElement("video");
+            video.srcObject = stream;
+            video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
+            video.play();
+            requestAnimationFrame(tick);
+
+            function tick() {
+                if (!scanning) return;
+                if (video.readyState === video.HAVE_ENOUGH_DATA) {
+                    canvas.hidden = false;
+                    document.getElementById("loadingMessage").hidden = true;
+                    canvas.height = video.videoHeight;
+                    canvas.width = video.videoWidth;
+                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+                    var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+                    var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+                    if (code) {
+                        processQRData(code.data);
+                        return; 
+                    }
+                }
+                requestAnimationFrame(tick);
+            }
+        });
+    }
+
+    function stopScan() {
+        scanning = false;
+        canvas.hidden = true;
+    }
+</script>
+
+</body>
+</html>
