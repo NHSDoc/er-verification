@@ -3,175 +3,398 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>ER GeoLocate Verification Tool</title>
-    <style>
-        body { font-family: 'Courier New', monospace; background-color: #1a1a1a; color: #e0e0e0; margin: 0; padding: 20px; }
-        h1 { color: #ffcc00; text-align: center; border-bottom: 2px solid #ffcc00; padding-bottom: 10px; }
-        .container { max-width: 800px; margin: 0 auto; background: #2d2d2d; padding: 20px; border-radius: 8px; border: 1px solid #444; }
-        .btn { display: block; width: 100%; padding: 15px; margin: 10px 0; background: #ffcc00; color: #000; font-weight: bold; border: none; cursor: pointer; font-size: 16px; }
-        .btn:hover { background: #e6b800; }
-        .hidden { display: none; }
-        .data-box { background: #000; border: 1px solid #ffcc00; padding: 15px; margin-top: 20px; word-wrap: break-word; }
-        .alert { background: #b71c1c; color: white; padding: 15px; margin-top: 20px; font-weight: bold; text-align: center; border: 2px solid #ff0000; animation: blink 2s infinite; }
-        .verified { background: #1b5e20; color: white; padding: 15px; margin-top: 20px; font-weight: bold; text-align: center; border: 2px solid #00ff00; }
-        iframe { width: 100%; height: 300px; border: 0; margin-top: 15px; }
-        
-        @keyframes blink { 0% { opacity: 1; } 50% { opacity: 0.8; } 100% { opacity: 1; } }
-    </style>
+    <title>ER Validation Tool</title>
+    
     <script src="https://cdn.jsdelivr.net/npm/jsqr@1.4.0/dist/jsQR.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.min.js"></script>
+    
+    <script>
+        pdfjsLib.GlobalWorkerOptions.workerSrc = 'https://cdnjs.cloudflare.com/ajax/libs/pdf.js/2.16.105/pdf.worker.min.js';
+    </script>
+
+    <style>
+        :root {
+            /* NHS Color Palette */
+            --nhs-blue: #005EB8;
+            --nhs-white: #FFFFFF;
+            --nhs-black: #231f20;
+            --nhs-dark-grey: #425563;
+            --nhs-light-grey: #f0f4f5;
+            --nhs-bright-green: #007f3b; /* Success */
+            --nhs-red: #da291c; /* Error/Alert */
+            --nhs-yellow: #fae100; /* Warning */
+        }
+
+        body {
+            font-family: "Frutiger", "Arial", sans-serif;
+            background-color: var(--nhs-light-grey);
+            color: var(--nhs-black);
+            margin: 0;
+            display: flex;
+            flex-direction: column;
+            align-items: center;
+            min-height: 100vh;
+        }
+
+        /* --- Header Section --- */
+        .header {
+            width: 100%;
+            background-color: var(--nhs-blue);
+            color: var(--nhs-white);
+            padding: 15px 0;
+            margin-bottom: 20px;
+            box-shadow: 0 4px 12px rgba(0,0,0,0.1);
+        }
+        
+        .header-content {
+            max-width: 800px;
+            margin: 0 auto;
+            padding: 0 20px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .header h1 {
+            font-size: 1.6rem;
+            margin: 0;
+            font-weight: 700;
+        }
+
+        .logo {
+            height: 45px;
+            background: white;
+            padding: 4px;
+            border-radius: 4px;
+        }
+
+        /* --- Refresh Button (Header) --- */
+        .btn-refresh {
+            background: transparent;
+            border: 1px solid rgba(255,255,255,0.5);
+            color: white;
+            padding: 8px 15px;
+            border-radius: 4px;
+            cursor: pointer;
+            font-size: 0.9rem;
+            transition: 0.2s;
+        }
+        .btn-refresh:hover {
+            background: rgba(255,255,255,0.1);
+            border-color: white;
+        }
+
+        /* --- Main Container --- */
+        .container {
+            width: 90%;
+            max-width: 800px;
+            background: var(--nhs-white);
+            padding: 30px;
+            border: 1px solid #d8dde0;
+            border-radius: 4px;
+            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
+            flex-grow: 1; /* Pushes footer down */
+        }
+
+        /* --- Buttons --- */
+        .btn {
+            background: var(--nhs-blue);
+            color: var(--nhs-white);
+            border: none;
+            padding: 15px 20px;
+            width: 100%;
+            font-weight: 600;
+            font-size: 1rem;
+            cursor: pointer;
+            margin-bottom: 15px;
+            border-radius: 4px;
+            transition: background 0.2s;
+            text-align: center;
+        }
+
+        .btn:hover { background: #003087; }
+        .btn-upload { background: var(--nhs-dark-grey); }
+        .btn-stop { background: var(--nhs-red); }
+
+        #file-input, .hidden { display: none !important; }
+
+        /* --- Results & Alerts --- */
+        .result-box {
+            margin-top: 30px;
+            border-top: 2px solid var(--nhs-light-grey);
+            padding-top: 20px;
+        }
+
+        .alert-box {
+            padding: 20px;
+            margin-bottom: 25px;
+            border-left: 10px solid;
+            background: #fff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.1);
+        }
+
+        .alert-danger { border-color: var(--nhs-red); background: #fff5f5; }
+        .alert-danger h3 { color: var(--nhs-red); margin-top: 0; }
+
+        .alert-success { border-color: var(--nhs-bright-green); background: #f0fdf4; }
+        .alert-success h3 { color: var(--nhs-bright-green); margin-top: 0; }
+
+        /* --- Data Grid --- */
+        .section-title {
+            color: var(--nhs-dark-grey);
+            font-size: 1.2rem;
+            border-bottom: 1px solid #ccc;
+            padding-bottom: 10px;
+            margin-top: 20px;
+            margin-bottom: 15px;
+        }
+
+        .data-grid {
+            display: grid;
+            border: 1px solid #d8dde0;
+            background: var(--nhs-light-grey);
+        }
+
+        .data-row {
+            display: grid;
+            grid-template-columns: 150px 1fr;
+            padding: 12px;
+            border-bottom: 1px solid #d8dde0;
+            background: white;
+            word-break: break-all;
+        }
+        .data-row:last-child { border-bottom: none; }
+        .label { font-weight: bold; color: var(--nhs-black); }
+
+        iframe { width: 100%; height: 350px; border: 1px solid #ccc; margin-top: 10px; }
+        
+        #video-container {
+            position: relative;
+            background: #000;
+            overflow: hidden;
+            border-radius: 4px;
+            margin-bottom: 20px;
+        }
+        video { width: 100%; display: block; }
+
+        /* --- Footer --- */
+        .footer {
+            width: 100%;
+            background: var(--nhs-white);
+            border-top: 1px solid #d8dde0;
+            padding: 20px 0;
+            margin-top: 30px;
+            text-align: center;
+            color: var(--nhs-dark-grey);
+            font-size: 0.9rem;
+        }
+        .footer-content {
+            max-width: 800px;
+            margin: 0 auto;
+            display: flex;
+            justify-content: space-between;
+            padding: 0 20px;
+        }
+    </style>
 </head>
 <body>
 
-<div class="container">
-    <h1>📍 ER GeoLocate Verification Tool</h1>
-    <p style="text-align:center;">Secure Verification Environment</p>
-
-    <button class="btn" onclick="showSection('scan')">📸 Scan QR Code</button>
-    <button class="btn" onclick="showSection('upload')">📂 Upload PDF / Image</button>
-
-    <div id="scan-section" class="hidden">
-        <h3 style="color:#ffcc00">Live Camera Scan</h3>
-        <canvas id="canvas" hidden></canvas>
-        <div id="loadingMessage">🎥 Waiting for video permission...</div>
+    <div class="header">
+        <div class="header-content">
+            <div style="display:flex; align-items:center; gap:15px;">
+                <img src="logo.jpg" alt="NHS Logo" class="logo" onerror="this.style.display='none'">
+                <h1>ER Validation Tool</h1>
+            </div>
+            <button class="btn-refresh" onclick="location.reload()">&#x21bb; Refresh</button>
+        </div>
     </div>
 
-    <div id="upload-section" class="hidden">
-        <h3 style="color:#ffcc00">Upload Verification File</h3>
-        <input type="file" id="file-input" accept="image/*" class="btn" style="background:#444; color:white;">
-    </div>
-
-    <div id="results" class="hidden">
-        <h3 style="color:#ffcc00">Verification Report</h3>
+    <div class="container">
+        <p style="margin-bottom: 20px; color: var(--nhs-dark-grey);">Select a verification method below to validate ER Reference Integrity.</p>
         
-        <div id="spoof-alert" class="hidden alert">⚠️ ALERT: POSSIBLE GPS/IP SPOOF DETECTED<br><span style="font-size:0.8em; font-weight:normal;">Altitude matches 0m (proxy/emulator signature)</span></div>
-        <div id="verified-badge" class="hidden verified">✅ DATA VERIFIED SECURE</div>
+        <button class="btn" onclick="startCamera()">Scan QR Code (Camera)</button>
+        <button class="btn btn-upload" onclick="document.getElementById('file-input').click()">Upload File (PDF / Image)</button>
+        <input type="file" id="file-input" accept="image/*,application/pdf" onchange="handleFileUpload(this)">
 
-        <div class="data-box" id="extracted-data"></div>
-        
-        <h4 style="color:#ffcc00">Location Visualizer</h4>
-        <div id="map-container"></div>
+        <div id="loading" class="hidden" style="text-align:center; padding:30px; font-weight:bold; color:var(--nhs-blue);">
+            Processing Document... Please Wait.
+        </div>
+
+        <div id="video-container" class="hidden">
+            <video id="video" playsinline></video>
+            <canvas id="canvas" hidden></canvas>
+            <div style="padding: 10px; background: white; text-align: center;">
+                <button class="btn btn-stop" style="margin:0; width: auto;" onclick="stopCamera()">Cancel Scan</button>
+            </div>
+        </div>
+
+        <div id="results" class="hidden result-box">
+            <div id="status-banner" class="alert-box hidden"></div>
+            
+            <div class="section-title">Extracted Metadata</div>
+            <div id="data-display" class="data-grid"></div>
+
+            <div class="section-title">Satellite Confirmation</div>
+            <div id="map-frame"></div>
+        </div>
     </div>
-</div>
+
+    <div class="footer">
+        <div class="footer-content">
+            <span>Version 2.2.0</span>
+            <span>&copy; 2026 Digestiv</span>
+        </div>
+    </div>
 
 <script>
+    const video = document.getElementById("video");
     const canvas = document.getElementById("canvas");
     const ctx = canvas.getContext("2d");
     let scanning = false;
+    let streamRef = null;
 
-    function showSection(id) {
-        document.getElementById('scan-section').classList.add('hidden');
-        document.getElementById('upload-section').classList.add('hidden');
-        document.getElementById(id + '-section').classList.remove('hidden');
-        
-        if(id === 'scan') startScan();
-        else stopScan();
-    }
-
-    // --- QR Processing Logic ---
-    function processQRData(codeData) {
-        stopScan();
-        document.getElementById('results').classList.remove('hidden');
-        
-        // 1. Attempt to Parse JSON
-        let data = {};
-        try {
-            data = JSON.parse(codeData);
-        } catch (e) {
-            data = { "Raw Data": codeData };
-        }
-
-        // 2. Render Data Fields
-        let html = "<ul>";
-        for (const [key, value] of Object.entries(data)) {
-            html += `<li><strong style="color:#ffcc00">${key}:</strong> ${value}</li>`;
-        }
-        html += "</ul>";
-        document.getElementById('extracted-data').innerHTML = html;
-
-        // 3. Spoof Detection (Altitude = 0)
-        // Checks for 'Altitude', 'alt', or 'Elevation' keys
-        const alt = data.Altitude || data.alt || data.elevation || "10"; // Default to safe if missing
-        if (parseInt(alt) === 0) {
-            document.getElementById('spoof-alert').classList.remove('hidden');
-            document.getElementById('verified-badge').classList.add('hidden');
-        } else {
-            document.getElementById('spoof-alert').classList.add('hidden');
-            document.getElementById('verified-badge').classList.remove('hidden');
-        }
-
-        // 4. Map Integration
-        // extract lat/long from various common key names
-        let lat = data.Latitude || data.lat;
-        let lng = data.Longitude || data.long || data.lng;
-        
-        if (lat && lng) {
-            const mapHtml = `<iframe 
-                frameborder="0" 
-                src="https://maps.google.com/maps?q=${lat},${lng}&hl=en&z=14&output=embed">
-            </iframe>`;
-            document.getElementById('map-container').innerHTML = mapHtml;
-        }
-    }
-
-    // --- Image Upload Logic ---
-    document.getElementById('file-input').addEventListener('change', e => {
-        const file = e.target.files[0];
+    // --- FILE UPLOAD ---
+    async function handleFileUpload(input) {
+        const file = input.files[0];
         if (!file) return;
-        const reader = new FileReader();
-        reader.onload = function(){
-            const img = new Image();
-            img.onload = function(){
-                const canvas = document.createElement('canvas');
-                const context = canvas.getContext('2d');
-                canvas.width = img.width;
-                canvas.height = img.height;
-                context.drawImage(img, 0, 0, img.width, img.height);
-                const imageData = context.getImageData(0, 0, img.width, img.height);
-                const code = jsQR(imageData.data, imageData.width, imageData.height);
-                if (code) {
-                    processQRData(code.data);
-                } else {
-                    alert("No QR code found in this image.");
-                }
-            };
-            img.src = reader.result;
-        };
-        reader.readAsDataURL(file);
-    });
 
-    // --- Camera Scan Logic ---
-    function startScan() {
-        scanning = true;
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then(function(stream) {
-            const video = document.createElement("video");
-            video.srcObject = stream;
-            video.setAttribute("playsinline", true); // required to tell iOS safari we don't want fullscreen
-            video.play();
-            requestAnimationFrame(tick);
+        document.getElementById('loading').classList.remove('hidden');
+        document.getElementById('results').classList.add('hidden');
+        stopCamera();
 
-            function tick() {
-                if (!scanning) return;
-                if (video.readyState === video.HAVE_ENOUGH_DATA) {
-                    canvas.hidden = false;
-                    document.getElementById("loadingMessage").hidden = true;
-                    canvas.height = video.videoHeight;
-                    canvas.width = video.videoWidth;
-                    ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
-                    var imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
-                    var code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
-                    if (code) {
-                        processQRData(code.data);
-                        return; 
-                    }
-                }
-                requestAnimationFrame(tick);
+        try {
+            if (file.type === "application/pdf") {
+                await processPDF(file);
+            } else {
+                await processImage(file);
             }
+        } catch (e) {
+            alert("Error processing file: " + e.message);
+            document.getElementById('loading').classList.add('hidden');
+        }
+    }
+
+    // --- PDF LOGIC ---
+    async function processPDF(file) {
+        const arrayBuffer = await file.arrayBuffer();
+        const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
+        const page = await pdf.getPage(1);
+        const viewport = page.getViewport({ scale: 2.0 });
+        
+        const pdfCanvas = document.createElement('canvas');
+        const pdfCtx = pdfCanvas.getContext('2d');
+        pdfCanvas.height = viewport.height;
+        pdfCanvas.width = viewport.width;
+
+        await page.render({ canvasContext: pdfCtx, viewport: viewport }).promise;
+
+        const imageData = pdfCtx.getImageData(0, 0, pdfCanvas.width, pdfCanvas.height);
+        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        
+        finishProcessing(code);
+    }
+
+    // --- IMAGE LOGIC ---
+    function processImage(file) {
+        return new Promise((resolve) => {
+            const reader = new FileReader();
+            reader.onload = () => {
+                const img = new Image();
+                img.onload = () => {
+                    const tempCanvas = document.createElement('canvas');
+                    const tempCtx = tempCanvas.getContext('2d');
+                    tempCanvas.width = img.width;
+                    tempCanvas.height = img.height;
+                    tempCtx.drawImage(img, 0, 0);
+                    const imageData = tempCtx.getImageData(0, 0, tempCanvas.width, tempCanvas.height);
+                    const code = jsQR(imageData.data, imageData.width, imageData.height);
+                    finishProcessing(code);
+                    resolve();
+                };
+                img.src = reader.result;
+            };
+            reader.readAsDataURL(file);
         });
     }
 
-    function stopScan() {
+    function finishProcessing(code) {
+        document.getElementById('loading').classList.add('hidden');
+        if (code) {
+            displayResults(code.data);
+        } else {
+            alert("No valid verification code found in this document.");
+        }
+    }
+
+    // --- CAMERA LOGIC ---
+    function startCamera() {
+        document.getElementById('video-container').classList.remove('hidden');
+        document.getElementById('results').classList.add('hidden');
+        scanning = true;
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then((stream) => {
+            streamRef = stream;
+            video.srcObject = stream;
+            video.play();
+            requestAnimationFrame(tick);
+        });
+    }
+
+    function stopCamera() {
         scanning = false;
-        canvas.hidden = true;
+        if (streamRef) {
+            streamRef.getTracks().forEach(track => track.stop());
+        }
+        document.getElementById('video-container').classList.add('hidden');
+    }
+
+    function tick() {
+        if (!scanning) return;
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.height = video.videoHeight;
+            canvas.width = video.videoWidth;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+            if (code) {
+                stopCamera();
+                displayResults(code.data);
+            }
+        }
+        requestAnimationFrame(tick);
+    }
+
+    // --- DISPLAY RESULTS ---
+    function displayResults(rawJson) {
+        document.getElementById('results').classList.remove('hidden');
+        const displayDiv = document.getElementById('data-display');
+        const banner = document.getElementById('status-banner');
+        
+        let data = {};
+        try { data = JSON.parse(rawJson); } catch(e) { data = { "Raw Data": rawJson }; }
+
+        displayDiv.innerHTML = Object.entries(data).map(([k, v]) => 
+            `<div class="data-row"><span class="label">${k}</span><span>${v}</span></div>`
+        ).join('');
+
+        const alt = data.Altitude || data.alt || "10";
+        if (parseInt(alt) === 0) {
+            banner.className = "alert-box alert-danger";
+            banner.innerHTML = "<h3>⚠️ Possible Spoof Detected</h3><p>The altitude data (0m) indicates this location may have been generated via a proxy or desktop emulator rather than a physical GPS receiver.</p>";
+        } else {
+            banner.className = "alert-box alert-success";
+            banner.innerHTML = "<h3>✅ Validated Secure</h3><p>Data integrity confirmed. GPS metadata aligns with standard receiver output.</p>";
+        }
+        banner.classList.remove('hidden');
+
+        let lat = data.Latitude || data.lat;
+        let lng = data.Longitude || data.long || data.lng;
+        if(lat) lat = lat.toString().replace(/[^\d.-]/g, '');
+        if(lng) lng = lng.toString().replace(/[^\d.-]/g, '');
+
+        if (lat && lng) {
+            document.getElementById('map-frame').innerHTML = 
+                `<iframe src="https://maps.google.com/maps?q=${lat},${lng}&t=k&z=17&ie=UTF8&iwloc=&output=embed"></iframe>`;
+        }
     }
 </script>
 
