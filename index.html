@@ -545,4 +545,75 @@
 
         // 6. REFERENCE BOX
         refBox.classList.remove('hidden');
-        refContent.innerHTML
+        refContent.innerHTML = `
+            <div class="ref-row"><span class="ref-label">Reference ID:</span><span>${qrRefID}</span></div>
+            <div class="ref-row"><span class="ref-label">Extracted Date:</span><span class="${refAlgoPassed ? 'ref-success' : 'ref-fail'}">${qrTime.split(',')[0] || qrTime} ${refAlgoPassed ? '✔' : '✘'}</span></div>
+            <div class="ref-row"><span class="ref-label">Extracted Time:</span><span class="${refAlgoPassed ? 'ref-success' : 'ref-fail'}">${qrTime.split(',')[1] || ''} ${refAlgoPassed ? '✔' : '✘'}</span></div>
+            <div class="ref-row"><span class="ref-label">Extracted GPS:</span><span class="${refAlgoPassed ? 'ref-success' : 'ref-fail'}">${qrLoc} ${refAlgoPassed ? '✔' : '✘'}</span></div>
+        `;
+
+        // 7. MAP
+        let cleanLat = "", cleanLng = "";
+        if (qrLoc !== "Not Found") {
+            const cleanLoc = qrLoc.toString().replace(/[^\d.,-]/g, '');
+            if (cleanLoc.includes(",")) {
+                const parts = cleanLoc.split(",");
+                cleanLat = parts[0].trim();
+                cleanLng = parts[1].trim();
+            }
+        }
+        if (cleanLat && cleanLng) {
+            document.getElementById('map-frame').innerHTML = 
+                `<iframe src="https://maps.google.com/maps?q=${cleanLat},${cleanLng}&t=m&z=15&output=embed" frameborder="0" scrolling="no" marginheight="0" marginwidth="0"></iframe>`;
+        } else {
+            document.getElementById('map-frame').innerHTML = "<div style='padding:20px; text-align:center; color:#777;'>No valid GPS coordinates found for mapping.</div>";
+        }
+    }
+
+    function startCamera() {
+        document.getElementById('input-section').classList.add('hidden');
+        document.getElementById('video-container').classList.remove('hidden');
+        scanning = true;
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } }).then((stream) => {
+            streamRef = stream;
+            video.srcObject = stream;
+            video.play();
+            requestAnimationFrame(tick);
+        });
+    }
+
+    function stopCamera() {
+        scanning = false;
+        if (streamRef) streamRef.getTracks().forEach(track => track.stop());
+        document.getElementById('video-container').classList.add('hidden');
+        document.getElementById('input-section').classList.remove('hidden');
+    }
+
+    function tick() {
+        if (!scanning) return;
+        if (video.readyState === video.HAVE_ENOUGH_DATA) {
+            canvas.height = video.videoHeight;
+            canvas.width = video.videoWidth;
+            ctx.drawImage(video, 0, 0, canvas.width, canvas.height);
+            const imageData = ctx.getImageData(0, 0, canvas.width, canvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height, { inversionAttempts: "dontInvert" });
+            if (code) {
+                scanning = false;
+                streamRef.getTracks().forEach(track => track.stop());
+                document.getElementById('video-container').classList.add('hidden');
+                // Pass canvas to OCR as if it were a file
+                document.getElementById('loading').classList.remove('hidden');
+                document.getElementById('loading-text').innerText = "Processing Camera Frame...";
+                
+                runOCR(canvas).then(text => {
+                    displayResults(code.data, text);
+                    document.getElementById('loading').classList.add('hidden');
+                });
+            }
+        }
+        requestAnimationFrame(tick);
+    }
+</script>
+
+</body>
+</html>
