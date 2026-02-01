@@ -49,10 +49,6 @@
             align-items: center;
         }
         
-        .header-content {
-            text-align: center;
-        }
-
         .header h1 {
             font-size: 1.6rem;
             margin: 10px 0 0 0;
@@ -174,21 +170,26 @@
             border-radius: 4px;
         }
 
-        /* --- Footer --- */
+        /* --- Footer (Updated to match Screenshot 80436.jpg) --- */
         .footer {
             width: 100%;
             text-align: center;
             padding: 20px 0;
-            color: var(--text-grey);
-            font-size: 0.85rem;
+            color: #999; /* Lighter grey like screenshot */
+            font-size: 0.9rem;
             margin-top: auto;
-            border-top: 1px solid #ddd;
+            border-top: 1px solid #e0e0e0;
             background: white;
             display: flex;
-            justify-content: center;
+            flex-direction: column;
+            align-items: center;
+            gap: 8px;
+        }
+
+        .footer-row {
+            display: flex;
             align-items: center;
             gap: 10px;
-            flex-wrap: wrap;
         }
 
         .footer-link {
@@ -198,7 +199,7 @@
             cursor: pointer;
             display: flex;
             align-items: center;
-            gap: 5px;
+            gap: 6px;
         }
         .footer-link:hover { text-decoration: underline; }
 
@@ -263,8 +264,6 @@
         @media (max-width: 600px) {
             .report-grid { grid-template-columns: 1fr; }
             .container { padding: 20px; width: 95%; }
-            .footer { flex-direction: column; gap: 5px; padding: 15px; }
-            .divider { display: none; }
         }
     </style>
 </head>
@@ -336,12 +335,20 @@
     </div>
 
     <div class="footer">
-        <span class="footer-link" onclick="toggleModal()">📱 Install App on Phone</span>
-        <span class="divider">|</span>
-        <span>Version 1.5</span>
-        <span class="divider">|</span>
-        <span>© Digestiv</span>
-        <button class="reset-symbol" onclick="location.reload()" title="Reset Tool">↻</button>
+        <div class="footer-row">
+            <span class="footer-link" onclick="toggleModal()">
+                <svg width="14" height="20" viewBox="0 0 14 20" fill="currentColor" xmlns="http://www.w3.org/2000/svg"><path d="M12 0H2C0.9 0 0 0.9 0 2V18C0 19.1 0.9 20 2 20H12C13.1 20 14 19.1 14 18V2C14 0.9 13.1 0 12 0ZM12 18H2V2H12V18Z"/></svg>
+                Install App on Phone
+            </span>
+            <span class="divider">|</span>
+            <span>© Digestiv</span>
+        </div>
+        <div class="footer-row">
+            <span>© Digestiv</span>
+            <span class="divider">|</span>
+            <span>Version 1.6</span>
+            <button class="reset-symbol" onclick="location.reload()" title="Reset Tool">↻</button>
+        </div>
     </div>
 
 <script>
@@ -383,23 +390,36 @@
         }
     }
 
+    // --- Updated PDF Logic: Adaptive Scaling ---
     async function processPDF(file) {
         const arrayBuffer = await file.arrayBuffer();
         const pdf = await pdfjsLib.getDocument(arrayBuffer).promise;
         const page = await pdf.getPage(1);
-        const viewport = page.getViewport({ scale: 3.0 });
         
-        const pdfCanvas = document.createElement('canvas');
-        const pdfCtx = pdfCanvas.getContext('2d');
-        pdfCanvas.height = viewport.height;
-        pdfCanvas.width = viewport.width;
-
-        await page.render({ canvasContext: pdfCtx, viewport: viewport }).promise;
-
-        const imageData = pdfCtx.getImageData(0, 0, pdfCanvas.width, pdfCanvas.height);
-        const code = jsQR(imageData.data, imageData.width, imageData.height);
+        // Try multiple scales to handle different PDF resolutions/renderings
+        const scales = [3.0, 2.0, 1.5, 1.0]; 
         
-        finishProcessing(code);
+        for (let scale of scales) {
+            console.log("Attempting scan at scale: " + scale);
+            const viewport = page.getViewport({ scale: scale });
+            const pdfCanvas = document.createElement('canvas');
+            const pdfCtx = pdfCanvas.getContext('2d');
+            pdfCanvas.height = viewport.height;
+            pdfCanvas.width = viewport.width;
+
+            await page.render({ canvasContext: pdfCtx, viewport: viewport }).promise;
+
+            const imageData = pdfCtx.getImageData(0, 0, pdfCanvas.width, pdfCanvas.height);
+            const code = jsQR(imageData.data, imageData.width, imageData.height);
+            
+            if (code) {
+                finishProcessing(code);
+                return; // Success, exit loop
+            }
+        }
+        
+        // If loop finishes without returning, we failed
+        finishProcessing(null);
     }
 
     function processImage(file) {
@@ -426,7 +446,7 @@
         if (code) {
             displayResults(code.data);
         } else {
-            alert("Unable to locate a valid QR code in this document.");
+            alert("Unable to locate a valid QR code in this document. Please ensure the image is clear and try again.");
             location.reload();
         }
     }
